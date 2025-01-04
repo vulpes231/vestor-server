@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv");
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+Wallet = require("./Wallet");
 
 const userSchema = new Schema(
   {
@@ -142,9 +143,10 @@ userSchema.statics.editUser = async function (userId, userData) {
 
 // register user
 userSchema.statics.registerUser = async function (userData) {
+  console.log("userData", userData);
   try {
     const user = await User.findOne({
-      username: loginData.username,
+      username: userData.username,
     });
     if (user) {
       throw new Error("Username taken!");
@@ -158,6 +160,16 @@ userSchema.statics.registerUser = async function (userData) {
       email: userData.email,
       fullname: userData.fullname,
       pin: userData.pin,
+    });
+
+    const depositWallet = await Wallet.create({
+      ownerId: newUser._id,
+      walletName: "Deposit",
+    });
+
+    const investWallet = await Wallet.create({
+      ownerId: newUser._id,
+      walletName: "Invest",
     });
 
     return newUser;

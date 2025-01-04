@@ -16,7 +16,7 @@ const updateUser = async (req, res) => {
   try {
     const userData = { fullname, email };
     const user = await User.editUser(userId, userData);
-    res.status(200).json({ user });
+    res.status(200).json({ message: `Profile updated.` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

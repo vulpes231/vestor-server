@@ -8,7 +8,7 @@ const loginUser = async (req, res) => {
   try {
     const loginData = { username, password };
     const { accessToken, refreshToken } = await User.loginUser(loginData);
-    res.status(200).json({ accessToken, refreshToken });
+    res.status(200).json({ accessToken, username });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
