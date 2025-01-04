@@ -11,11 +11,11 @@ const fetchUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { fullname, email } = req.body;
+  const { fullname, email, address, phone } = req.body;
   const userId = req.userId;
   try {
-    const userData = { fullname, email };
-    const user = await User.editUser(userId, userData);
+    const userData = { fullname, email, address, phone };
+    await User.editUser(userId, userData);
     res.status(200).json({ message: `Profile updated.` });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -47,6 +47,24 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isKYCVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    address: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -132,6 +150,12 @@ userSchema.statics.editUser = async function (userId, userData) {
     }
     if (userData.email) {
       user.email = userData.email;
+    }
+    if (userData.address) {
+      user.address = userData.address;
+    }
+    if (userData.phone) {
+      user.phone = userData.phone;
     }
     await user.save();
     return user;
