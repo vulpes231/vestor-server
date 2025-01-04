@@ -84,7 +84,7 @@ userSchema.statics.loginUser = async function (loginData) {
     await user.save();
     return { accessToken, refreshToken };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 };
@@ -101,7 +101,7 @@ userSchema.statics.logoutUser = async function (userId) {
     await user.save();
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 };
@@ -115,7 +115,7 @@ userSchema.statics.getUser = async function (userId) {
     }
     return user;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 };
@@ -136,7 +136,7 @@ userSchema.statics.editUser = async function (userId, userData) {
     await user.save();
     return user;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 };
@@ -174,7 +174,30 @@ userSchema.statics.registerUser = async function (userData) {
 
     return newUser;
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    throw error;
+  }
+};
+
+userSchema.statics.changePassword = async function (userId, passwordData) {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User does not exist!");
+    }
+    const passwordMatch = await bcrypt.compare(
+      passwordData.password,
+      user.password
+    );
+    if (!passwordMatch) {
+      throw new Error("Invalid password!");
+    }
+    const hashPassword = await bcrypt.hash(passwordData.newPassword, 10);
+    user.password = hashPassword;
+    await user.save();
+    return true;
+  } catch (error) {
+    console.error(error);
     throw error;
   }
 };

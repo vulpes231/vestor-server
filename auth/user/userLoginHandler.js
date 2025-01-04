@@ -8,6 +8,10 @@ const loginUser = async (req, res) => {
   try {
     const loginData = { username, password };
     const { accessToken, refreshToken } = await User.loginUser(loginData);
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     res.status(200).json({ accessToken, username });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -22,4 +22,30 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = { fetchUser, updateUser };
+const logoutClient = async (req, res) => {
+  const userId = req.userId;
+  try {
+    await User.logoutUser(userId);
+    res.status(204).json({ message: "Logged out!" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  const { password, newPassword } = req.body;
+  if (!password || !newPassword)
+    return res
+      .status(400)
+      .json({ message: "Enter password and new password!" });
+
+  const userId = req.userId;
+  try {
+    const passwordData = { password, newPassword };
+    await User.changePassword(userId, passwordData);
+    res.status(204).json({ message: "Password updated." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports = { fetchUser, updateUser, logoutClient, updatePassword };
