@@ -6,10 +6,11 @@ const { reqLogger, errorLogger } = require("./middlewares/logger");
 const { corsOptions } = require("./configs/corsOptions");
 const { default: mongoose } = require("mongoose");
 const { connectDB } = require("./configs/connectDB");
+const { verifyJWT } = require("./middlewares/verifyJWT");
 require("dotenv").config();
 const PORT = process.env.PORT || 4500;
 
-// connectDB()
+connectDB();
 
 app.use(reqLogger);
 
@@ -17,6 +18,13 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use("/", require("./routes/root"));
+app.use("/auth", require("./auth/user/userLoginRoute"));
+app.use("/signup", require("./enroll/user/enrollUserRoute"));
+
+app.use(verifyJWT);
+app.use("/user", require("./profiles/user/userProfileRoute"));
 
 app.use(errorLogger);
 
