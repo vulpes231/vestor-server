@@ -30,26 +30,25 @@ const userSchema = new Schema(
       trim: true,
       minlength: 3,
     },
-    fullname: {
+    country: {
       type: String,
-      required: true,
-      unique: true,
       trim: true,
-      minlength: 3,
+      required: true,
+    },
+    firstname: {
+      type: String,
+      trim: true,
+    },
+    lastname: {
+      type: String,
+      trim: true,
     },
     pin: {
       type: String,
-      required: true,
-      unique: true,
       trim: true,
-      minlength: 3,
     },
     refreshToken: {
       type: String,
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
     },
     isKYCVerified: {
       type: Boolean,
@@ -59,8 +58,29 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    address: {
+    isProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
+    street: {
       type: String,
+      trim: true,
+    },
+    apt: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    zip: {
+      type: String,
+      trim: true,
     },
     phone: {
       type: String,
@@ -81,33 +101,44 @@ userSchema.statics.loginUser = async function (loginData) {
     if (!user) {
       throw new Error("User does not exist!");
     }
+
+    // Ensure password matches
     const passwordMatch = await bcrypt.compare(
       loginData.password,
       user.password
     );
     if (!passwordMatch) {
-      throw new Error("Invalid username OR password!");
+      throw new Error("Invalid username or password!");
     }
+
+    // Generate tokens
     const accessToken = jwt.sign(
       { username: user.username, userId: user._id },
       ACCESS_TOKEN_SECRET,
-      { expiresIn: "1day" }
+      { expiresIn: "1d" }
     );
     const refreshToken = jwt.sign(
       { username: user.username, userId: user._id },
       REFRESH_TOKEN_SECRET,
-      { expiresIn: "1day" }
+      { expiresIn: "7d" }
     );
+
+    // Save refresh token to database
     user.refreshToken = refreshToken;
     await user.save();
-    return { accessToken, refreshToken };
+
+    return {
+      accessToken,
+      refreshToken,
+      isProfileComplete: user.isProfileComplete,
+      country: user.country,
+    };
   } catch (error) {
     console.error(error);
-    throw error;
+    throw new Error("An error occurred while logging in.");
   }
 };
 
-// logout user
 userSchema.statics.logoutUser = async function (userId) {
   try {
     const user = await User.findById(userId);
@@ -120,7 +151,7 @@ userSchema.statics.logoutUser = async function (userId) {
     return true;
   } catch (error) {
     console.error(error);
-    throw error;
+    throw new Error("An error occurred while logging out.");
   }
 };
 
@@ -145,14 +176,26 @@ userSchema.statics.editUser = async function (userId, userData) {
     if (!user) {
       throw new Error("User does not exist!");
     }
-    if (userData.fullname) {
-      user.fullname = userData.fullname;
+    if (userData.firstname) {
+      user.firstname = userData.firstname;
     }
-    if (userData.email) {
-      user.email = userData.email;
+    if (userData.lastname) {
+      user.lastname = userData.lastname;
     }
-    if (userData.address) {
-      user.address = userData.address;
+    if (userData.street) {
+      user.street = userData.street;
+    }
+    if (userData.apt) {
+      user.apt = userData.apt;
+    }
+    if (userData.city) {
+      user.city = userData.city;
+    }
+    if (userData.state) {
+      user.state = userData.state;
+    }
+    if (userData.zip) {
+      user.zip = userData.zip;
     }
     if (userData.phone) {
       user.phone = userData.phone;
@@ -167,7 +210,6 @@ userSchema.statics.editUser = async function (userId, userData) {
 
 // register user
 userSchema.statics.registerUser = async function (userData) {
-  console.log("userData", userData);
   try {
     const user = await User.findOne({
       username: userData.username,
@@ -182,8 +224,7 @@ userSchema.statics.registerUser = async function (userData) {
       username: userData.username,
       password: hashPassword,
       email: userData.email,
-      fullname: userData.fullname,
-      pin: userData.pin,
+      country: userData.country,
     });
 
     const depositWallet = await Wallet.create({
@@ -196,7 +237,21 @@ userSchema.statics.registerUser = async function (userData) {
       walletName: "Invest",
     });
 
-    return newUser;
+    const accessToken = jwt.sign(
+      { username: newUser.username, userId: newUser._id },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1day" }
+    );
+    const refreshToken = jwt.sign(
+      { username: newUser.username, userId: newUser._id },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "1day" }
+    );
+
+    newUser.refreshToken = refreshToken;
+    await newUser.save();
+
+    return { accessToken, refreshToken };
   } catch (error) {
     console.error(error);
     throw error;
