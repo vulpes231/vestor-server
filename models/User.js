@@ -95,7 +95,7 @@ const userSchema = new Schema(
 userSchema.statics.loginUser = async function (loginData) {
   try {
     const user = await User.findOne({
-      username: loginData.username,
+      email: loginData.email,
     });
 
     if (!user) {
@@ -132,10 +132,12 @@ userSchema.statics.loginUser = async function (loginData) {
       refreshToken,
       isProfileComplete: user.isProfileComplete,
       country: user.country,
+      username: user.username,
+      isBanned: user.isBanned,
     };
   } catch (error) {
     console.error(error);
-    throw new Error("An error occurred while logging in.");
+    throw error;
   }
 };
 
