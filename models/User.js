@@ -18,8 +18,6 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
-      unique: true,
       trim: true,
       minlength: 3,
     },
@@ -213,11 +211,21 @@ userSchema.statics.editUser = async function (userId, userData) {
 // register user
 userSchema.statics.registerUser = async function (userData) {
   try {
-    const user = await User.findOne({
+    const userNameTaken = await User.findOne({
       username: userData.username,
     });
-    if (user) {
+    if (userNameTaken) {
       throw new Error("Username taken!");
+    }
+    const emailTaken = await User.findOne({
+      email: userData.email,
+    });
+    if (emailTaken) {
+      throw new Error("Email registered!");
+    }
+
+    if (userData.password !== userData.confirmPassword) {
+      throw new Error("Passwords do not match!");
     }
 
     const hashPassword = await bcrypt.hash(userData.password, 10);
