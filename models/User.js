@@ -83,6 +83,24 @@ const userSchema = new Schema(
     phone: {
       type: String,
     },
+    mailing: {
+      type: String,
+    },
+    tax: {
+      type: String,
+    },
+    idNumber: {
+      type: String,
+    },
+    marital: {
+      type: String,
+    },
+    dob: {
+      type: String,
+    },
+    employment: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -200,6 +218,25 @@ userSchema.statics.editUser = async function (userId, userData) {
     if (userData.phone) {
       user.phone = userData.phone;
     }
+    if (userData.marital) {
+      user.marital = userData.marital;
+    }
+    if (userData.tax) {
+      user.tax = userData.tax;
+    }
+    if (userData.dob) {
+      user.dob = userData.dob;
+    }
+    if (userData.mailing) {
+      user.mailing = userData.mailing;
+    }
+    if (userData.employment) {
+      user.employment = userData.employment;
+    }
+    if (userData.id) {
+      user.idNumber = userData.id;
+    }
+    user.isProfileComplete = true;
     await user.save();
     return user;
   } catch (error) {

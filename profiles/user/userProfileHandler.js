@@ -11,19 +11,55 @@ const fetchUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { firstname, latsname, street, apt, city, state, zip, phone } =
-    req.body;
+  const {
+    firstname,
+    lastname,
+    street,
+    apt,
+    city,
+    state,
+    zip,
+    phone,
+    dob,
+    employment,
+    tax,
+    mailing,
+    marital,
+    id,
+  } = req.body;
+  if (
+    !firstname ||
+    !lastname ||
+    !street ||
+    !city ||
+    !state ||
+    !zip ||
+    !phone ||
+    !dob ||
+    !employment ||
+    !tax ||
+    !mailing ||
+    !marital ||
+    !id
+  )
+    return res.status(400).json({ message: "Incomplete Data" });
   const userId = req.userId;
   try {
     const userData = {
       firstname,
-      latsname,
+      lastname,
       street,
       apt,
       city,
       state,
       zip,
       phone,
+      dob,
+      employment,
+      tax,
+      mailing,
+      marital,
+      id,
     };
     await User.editUser(userId, userData);
     res.status(200).json({ message: `Profile updated.` });
