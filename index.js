@@ -27,6 +27,9 @@ app.use(verifyJWT);
 app.use("/user", require("./profiles/user/userProfileRoute"));
 app.use("/wallet", require("./wallets/user/userWalletRoute"));
 
+//admin routes
+app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));
+
 app.use(errorLogger);
 
 mongoose.connection.once("connected", () => {
