@@ -24,11 +24,12 @@ app.use("/auth", require("./auth/user/userLoginRoute"));
 app.use("/signup", require("./enroll/user/enrollUserRoute"));
 
 app.use(verifyJWT);
+// user auth routes
 app.use("/user", require("./profiles/user/userProfileRoute"));
 app.use("/wallet", require("./wallets/user/userWalletRoute"));
 app.use("/trnx", require("./transactions/user/trnxRoute"));
 
-//admin routes
+//admin auth routes
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));
 
 app.use(errorLogger);
