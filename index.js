@@ -26,6 +26,7 @@ app.use("/signup", require("./enroll/user/enrollUserRoute"));
 app.use(verifyJWT);
 app.use("/user", require("./profiles/user/userProfileRoute"));
 app.use("/wallet", require("./wallets/user/userWalletRoute"));
+app.use("/trnx", require("./transactions/user/trnxRoute"));
 
 //admin routes
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));

@@ -30,6 +30,9 @@ const transactionSchema = new Schema(
     memo: {
       type: String,
     },
+    walletType: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -82,15 +85,75 @@ transactionSchema.statics.createTransaction = async function (
   }
 };
 
-transactionSchema.statics.depositFunds = async function () {
+transactionSchema.statics.depositFunds = async function (
+  transactionData,
+  userId
+) {
   try {
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      throw new Error("User not found!");
+    }
+    const depositTrnx = {
+      owner: user._id,
+      type: "deposit",
+      amount: transactionData.amount,
+      coin: transactionData.coin,
+      memo: transactionData.memo || "Funds deposit",
+      status: "pending",
+    };
+    await Transaction.create(depositTrnx);
+    return depositTrnx;
   } catch (error) {
     throw error;
   }
 };
 
-transactionSchema.statics.withdrawFunds = async function () {
+transactionSchema.statics.withdrawFunds = async function (
+  transactionData,
+  userId
+) {
   try {
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      throw new Error("User not found!");
+    }
+    const parsedAmt = parseFloat(transactionData.amount);
+    const userWallets = await Wallet.find({ ownerId: user._id });
+    if (userWallets.length < 0) {
+      throw new Error("You have no active wallets");
+    }
+    // console.log(userWallets);
+
+    const withdrawAccount = userWallets.find(
+      (wallet) => wallet.walletName.toLowerCase() === transactionData.walletType
+    );
+    if (!withdrawAccount) {
+      throw new Error("Invalid withdraw from wallet");
+    }
+
+    if (withdrawAccount.balance < parsedAmt) {
+      throw new Error("Insufficient balance!");
+    }
+
+    console.log("Balance before", withdrawAccount.balance);
+
+    withdrawAccount.balance -= parsedAmt;
+    await withdrawAccount.save();
+
+    const newWithdrawal = {
+      owner: user._id,
+      type: transactionData.type,
+      amount: transactionData.amount,
+      coin: transactionData.coin,
+      memo: transactionData.memo || "Withdrawal",
+      walletType: transactionData.walletType,
+      status: "pending",
+    };
+    await Transaction.create(newWithdrawal);
+    console.log("Balance after", withdrawAccount.balance);
+
+    return newWithdrawal;
   } catch (error) {
     throw error;
   }
