@@ -31,6 +31,7 @@ app.use("/trnx", require("./transactions/user/trnxRoute"));
 
 //admin auth routes
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));
+app.use("/managepool", require("./invest/admin/managePoolRoute"));
 
 app.use(errorLogger);
 

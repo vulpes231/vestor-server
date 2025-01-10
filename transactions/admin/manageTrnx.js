@@ -1,11 +1,11 @@
 const Transaction = require("../../models/Transaction");
 
 const createTrnx = async (req, res) => {
-  //   const isAdmin = req.isAdmin;
-  //   if (!isAdmin)
-  //     return res
-  //       .status(403)
-  //       .json({ message: "You're not allowed on this server!" });
+  const isAdmin = req.isAdmin;
+  if (!isAdmin)
+    return res
+      .status(403)
+      .json({ message: "You're not allowed on this server!" });
 
   const { userId, type, amount, coin, date, memo } = req.body;
 
@@ -22,4 +22,19 @@ const createTrnx = async (req, res) => {
   }
 };
 
-module.exports = { createTrnx };
+const getTransactions = async (req, res) => {
+  const isAdmin = req.isAdmin;
+  if (!isAdmin)
+    return res
+      .status(403)
+      .json({ message: "You're not allowed on this server!" });
+
+  try {
+    const transactions = await Transaction.getAllTrnxs();
+    res.status(200).json({ transactions });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createTrnx, getTransactions };

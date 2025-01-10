@@ -59,4 +59,14 @@ const makeTransfer = async (req, res) => {
   }
 };
 
-module.exports = { makeDeposit, makeWithdrawal, makeTransfer };
+const getUserTrnxs = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const userTrnxs = await Transaction.getUserHistory(userId);
+    res.status(200).json({ userTrnxs });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { makeDeposit, makeWithdrawal, makeTransfer, getUserTrnxs };

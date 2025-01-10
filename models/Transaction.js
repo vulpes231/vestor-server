@@ -224,5 +224,33 @@ transactionSchema.statics.transferFund = async function (
   }
 };
 
+transactionSchema.statics.getUserHistory = async function (userId) {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found!");
+    }
+    const userTrnxs = await Transaction.find({ owner: user._id });
+    if (userTrnxs.length < 0) {
+      throw new Error("You have no transactions.");
+    }
+    return userTrnxs;
+  } catch (error) {
+    throw error;
+  }
+};
+
+transactionSchema.statics.getAllTrnxs = async function () {
+  try {
+    const transactions = await Transaction.find();
+    if (transactions.length < 0) {
+      throw new Error("You have no transactions.");
+    }
+    return transactions;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const Transaction = mongoose.model("Transaction", transactionSchema);
 module.exports = Transaction;
