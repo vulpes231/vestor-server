@@ -24,4 +24,13 @@ const getUserBots = async (req, res) => {
   }
 };
 
-module.exports = { buyBot, getUserBots };
+const getPlans = async (req, res) => {
+  try {
+    const plans = await Invest.find();
+    res.status(200).json({ plans });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { buyBot, getUserBots, getPlans };
