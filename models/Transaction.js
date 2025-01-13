@@ -100,6 +100,8 @@ transactionSchema.statics.depositFund = async function (
     if (!user) {
       throw new Error("User not found!");
     }
+
+    const currentDate = format(new Date(), "EEE d MMM, yyyy");
     const depositTrnx = {
       owner: user._id,
       type: "deposit",
@@ -107,6 +109,7 @@ transactionSchema.statics.depositFund = async function (
       coin: transactionData.coin,
       memo: transactionData.memo || "Funds deposit",
       status: "pending",
+      date: currentDate,
     };
     await Transaction.create(depositTrnx);
     return depositTrnx;
@@ -146,7 +149,7 @@ transactionSchema.statics.withdrawFund = async function (
 
     withdrawAccount.balance -= parsedAmt;
     await withdrawAccount.save();
-
+    const currentDate = format(new Date(), "EEE d MMM, yyyy");
     const newWithdrawal = {
       owner: user._id,
       type: "withdraw",
@@ -156,6 +159,7 @@ transactionSchema.statics.withdrawFund = async function (
       receiver: transactionData.receiver,
       sender: withdrawAccount.walletName.toLowerCase(),
       status: "pending",
+      date: currentDate,
     };
     await Transaction.create(newWithdrawal);
     console.log("Balance after", withdrawAccount.balance);
