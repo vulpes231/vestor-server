@@ -36,5 +36,25 @@ walletSchema.statics.getUserWallets = async function (userId) {
   }
 };
 
+walletSchema.statics.getTotalBalance = async function (userId) {
+  const User = require("./User");
+  try {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    const userWallets = await Wallet.find({ ownerId: user._id });
+
+    const totalBalance = userWallets.reduce(
+      (total, wallet) => total + wallet.balance,
+      0
+    );
+
+    return totalBalance;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 const Wallet = mongoose.model("Wallet", walletSchema);
 module.exports = Wallet;
