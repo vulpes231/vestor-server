@@ -25,7 +25,7 @@ const investSchema = new Schema({
 investSchema.statics.createPlan = async function (planData) {
   try {
     const newPlan = {
-      packageName: planData.name,
+      packageName: planData.packageName,
       yield: planData.yield,
       minPool: planData.minPool,
       maxPool: planData.maxPool,
@@ -33,6 +33,35 @@ investSchema.statics.createPlan = async function (planData) {
     };
     await Invest.create(newPlan);
     return newPlan;
+  } catch (error) {
+    throw error;
+  }
+};
+investSchema.statics.editPlan = async function (planData, planId) {
+  try {
+    const plan = await Invest.findById(planId);
+    if (!plan) {
+      throw new Error("Invalid plan");
+    }
+
+    if (planData.packageName) {
+      plan.packageName = planData.packageName;
+    }
+    if (planData.yield) {
+      plan.yield = planData.yield;
+    }
+    if (planData.minPool) {
+      plan.minPool = planData.minPool;
+    }
+    if (planData.maxPool) {
+      plan.maxPool = planData.maxPool;
+    }
+    if (planData.period) {
+      plan.period = planData.period;
+    }
+
+    await plan.save();
+    return plan;
   } catch (error) {
     throw error;
   }
