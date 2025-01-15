@@ -2,6 +2,7 @@ const { Schema, default: mongoose } = require("mongoose");
 const { format } = require("date-fns");
 const User = require("./User");
 const Bot = require("./Bot");
+const Wallet = require("./Wallet");
 
 const tradeSchema = new Schema({
   date: {
@@ -41,6 +42,16 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
     if (!bot) {
       throw new Error("Plan not found!");
     }
+
+    const userWallets = await Wallet.find({ ownerId: user._id });
+    const investWallet = userWallets.find(
+      (wallet) => wallet.walletName === "invest"
+    );
+
+    if (investWallet.balance < parseFloat(tradeData.amount)) {
+      throw new Error("Insufficient funds in invest wallet");
+    }
+
     const currentDate = format(new Date(), "EEE d MMM, yyyy");
     const newTradeData = {
       date: currentDate,
@@ -112,6 +123,57 @@ tradeSchema.statics.getTotalProfit = async function (userId) {
     }, 0);
 
     return totalProfit;
+  } catch (error) {
+    throw error;
+  }
+};
+
+tradeSchema.statics.editTrade = async function (tradeData) {
+  try {
+    const trade = await Trade.findById(tradeData.tradeId);
+    if (!trade) {
+      throw new Error("Invalid tradeId");
+    }
+
+    if (tradeData.roi) {
+      trade.roi = tradeData.roi;
+    }
+
+    await trade.save();
+    return newTrade;
+  } catch (error) {
+    throw error;
+  }
+};
+
+tradeSchema.statics.closeTrade = async function (tradeData) {
+  try {
+    const user = await User.findById(tradeData.userId);
+    if (!user) {
+      throw new Error("Invalid userId");
+    }
+
+    const trade = await Trade.findById(tradeData.tradeId);
+    if (!trade) {
+      throw new Error("Invalid tradeId");
+    }
+
+    const userWallets = await Wallet.find({ ownerId: user._id });
+    const investWallet = userWallets.find(
+      (wallet) => wallet.walletName === "invest"
+    );
+
+    if (trade.roi > 0) {
+      investWallet.balance += trade.roi;
+    } else {
+      investWallet.balance -= trade.roi;
+    }
+    await investWallet.save();
+
+    trade.status = "closed";
+    await trade.save();
+
+    return true;
   } catch (error) {
     throw error;
   }
