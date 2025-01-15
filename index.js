@@ -29,10 +29,12 @@ app.use("/user", require("./profiles/user/userProfileRoute"));
 app.use("/wallet", require("./wallets/user/userWalletRoute"));
 app.use("/trnx", require("./transactions/user/trnxRoute"));
 app.use("/pool", require("./invest/user/investRoute"));
+app.use("/trade", require("./trades/user/tradeRoute"));
 
 //admin auth routes
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));
 app.use("/managepool", require("./invest/admin/managePoolRoute"));
+app.use("/managetrade", require("./trades/admin/manageTradeRoute"));
 
 app.use(errorLogger);
 

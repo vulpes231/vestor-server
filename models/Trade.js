@@ -46,7 +46,7 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       date: currentDate,
       market: tradeData.market,
       amount: tradeData.amount,
-      roi: tradeData.roi,
+      roi: tradeData.roi || 0,
       status: "open",
       createdBy: bot._id,
       createdFor: user._id,
@@ -72,7 +72,7 @@ tradeSchema.statics.getTrades = async function () {
 
 tradeSchema.statics.getUsertrades = async function (userId) {
   try {
-    const user = await User.findById(tradeData.userId);
+    const user = await User.findById(userId);
     if (!user) {
       throw new Error("Invalid userId");
     }
@@ -85,7 +85,7 @@ tradeSchema.statics.getUsertrades = async function (userId) {
 
 tradeSchema.statics.getActiveTradeCount = async function (userId) {
   try {
-    const user = await User.findById(tradeData.userId);
+    const user = await User.findById(userId);
     if (!user) {
       throw new Error("Invalid userId");
     }
