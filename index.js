@@ -35,6 +35,7 @@ app.use("/trade", require("./trades/user/tradeRoute"));
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));
 app.use("/managepool", require("./invest/admin/managePoolRoute"));
 app.use("/managetrade", require("./trades/admin/manageTradeRoute"));
+app.use("/manageverify", require("./verify/admin/manageVerifyRoute"));
 
 app.use(errorLogger);
 

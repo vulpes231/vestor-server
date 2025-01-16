@@ -86,5 +86,32 @@ verificationSchema.statics.rejectAccount = async function (verifyData) {
   }
 };
 
+verificationSchema.statics.getVerifications = async function () {
+  try {
+    const verifications = await Verification.find();
+    return verifications;
+  } catch (error) {
+    throw error;
+  }
+};
+
+verificationSchema.statics.getUserVerifyData = async function (userId) {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Invalid userId");
+    }
+
+    const userVerifyData = await Verification.findOne({ initiator: user._id });
+    if (!userVerifyData) {
+      throw new Error("No submitted request!");
+    }
+
+    return userVerifyData;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const Verification = mongoose.model("Verification", verificationSchema);
 module.exports = Verification;
