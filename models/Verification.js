@@ -1,0 +1,90 @@
+const { Schema, default: mongoose } = require("mongoose");
+const User = require("./User");
+
+const verificationSchema = new Schema({
+  idNumber: {
+    type: String,
+    required: true,
+  },
+  idType: {
+    type: String,
+    required: true,
+  },
+  imagePath: {
+    type: String,
+  },
+  status: {
+    type: String,
+    default: "pending",
+  },
+  initiator: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
+});
+
+verificationSchema.statics.verifyAccount = async function (verifyData) {
+  try {
+    const user = await User.findById(verifyData.userId);
+    if (!user) {
+      throw new Error("Invalid userId");
+    }
+
+    const verificationData = {
+      idNumber: verifyData.idNumber,
+      idType: verifyData.idType,
+      imagePath: verifyData.imagePath,
+      initiator: user._id,
+    };
+
+    const userVerify = await Verification.create(verificationData);
+    return userVerify;
+  } catch (error) {
+    throw error;
+  }
+};
+
+verificationSchema.statics.approveAccount = async function (verifyData) {
+  try {
+    const user = await User.findById(verifyData.userId);
+    if (!user) {
+      throw new Error("Invalid userId");
+    }
+
+    const verifyRequest = await Verification.findById(verifyData.verifyId);
+    if (!verifyRequest) {
+      throw new Error("Invalid Verification request ID!");
+    }
+    verifyRequest.status = "verified";
+    await verifyRequest.save();
+
+    user.isKYCVerified = true;
+    await user.save();
+
+    return verifyRequest;
+  } catch (error) {
+    throw error;
+  }
+};
+
+verificationSchema.statics.rejectAccount = async function (verifyData) {
+  try {
+    const user = await User.findById(verifyData.userId);
+    if (!user) {
+      throw new Error("Invalid userId");
+    }
+
+    const verifyRequest = await Verification.findById(verifyData.verifyId);
+    if (!verifyRequest) {
+      throw new Error("Invalid Verification request ID!");
+    }
+    verifyRequest.status = "failed";
+    await verifyRequest.save();
+    return verifyRequest;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const Verification = mongoose.model("Verification", verificationSchema);
+module.exports = Verification;
