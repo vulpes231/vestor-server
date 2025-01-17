@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -30,6 +32,11 @@ app.use("/wallet", require("./wallets/user/userWalletRoute"));
 app.use("/trnx", require("./transactions/user/trnxRoute"));
 app.use("/pool", require("./invest/user/investRoute"));
 app.use("/trade", require("./trades/user/tradeRoute"));
+app.use(
+  "/verify",
+  upload.single("image"),
+  require("./verify/user/verifyRoute")
+);
 
 //admin auth routes
 app.use("/managetrnx", require("./transactions/admin/manageTrnxRoute"));

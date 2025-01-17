@@ -13,6 +13,12 @@ const verificationSchema = new Schema({
   imagePath: {
     type: String,
   },
+  dob: {
+    type: String,
+  },
+  employment: {
+    type: String,
+  },
   status: {
     type: String,
     default: "pending",
@@ -30,10 +36,16 @@ verificationSchema.statics.verifyAccount = async function (verifyData) {
       throw new Error("Invalid userId");
     }
 
+    const pendingRequest = await Verification.findOne({ initiator: user._id });
+    if (pendingRequest) {
+      throw new Error("Request already submitted!");
+    }
     const verificationData = {
       idNumber: verifyData.idNumber,
       idType: verifyData.idType,
       imagePath: verifyData.imagePath,
+      dob: verifyData.dob,
+      employment: verifyData.employment,
       initiator: user._id,
     };
 
