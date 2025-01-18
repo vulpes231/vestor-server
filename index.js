@@ -16,14 +16,15 @@ connectDB();
 
 app.use(reqLogger);
 
-app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/", require("./routes/root"));
+app.use(cors(corsOptions));
+
 app.use("/auth", require("./auth/user/userLoginRoute"));
 app.use("/signup", require("./enroll/user/enrollUserRoute"));
+app.use("/", require("./routes/root"));
 
 app.use(verifyJWT);
 // user auth routes
