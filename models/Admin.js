@@ -27,7 +27,7 @@ const adminSchema = new Schema(
 
 adminSchema.statics.createAdmin = async function (adminData) {
   try {
-    const admin = await Admin.findOne({ username });
+    const admin = await Admin.findOne({ username: adminData.username });
 
     if (admin) {
       throw new Error("Username taken");
@@ -48,7 +48,7 @@ adminSchema.statics.createAdmin = async function (adminData) {
 
 adminSchema.statics.loginAdmin = async function (loginData) {
   try {
-    const admin = await Admin.findOne({ username });
+    const admin = await Admin.findOne({ username: loginData.username });
     if (!admin) {
       throw new Error("Admin not found!");
     }
@@ -62,12 +62,12 @@ adminSchema.statics.loginAdmin = async function (loginData) {
     }
 
     const accessToken = jwt.sign(
-      { admin: admin.username, adminId: admin._id },
+      { admin: admin.username, adminId: admin._id, isAdmin: admin.isAdmin },
       ACCESS_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
     const refreshToken = jwt.sign(
-      { admin: admin.username, adminId: admin._id },
+      { admin: admin.username, adminId: admin._id, isAdmin: admin.isAdmin },
       REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
@@ -94,7 +94,7 @@ adminSchema.statics.getAdmin = async function (adminId) {
 adminSchema.statics.logoutAdmin = async function (adminId) {
   try {
     const admin = await Admin.findById(adminId);
-    if (!user) {
+    if (!admin) {
       throw new Error("Admin does not exist!");
     }
 

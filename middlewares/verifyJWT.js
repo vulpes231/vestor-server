@@ -16,6 +16,8 @@ const verifyJWT = (req, res, next) => {
     }
     req.user = decoded.username;
     req.userId = decoded.userId;
+    req.isAdmin = decoded.isAdmin;
+    req.adminId = decoded.adminId;
     next();
   });
 };
