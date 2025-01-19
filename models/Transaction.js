@@ -281,5 +281,19 @@ transactionSchema.statics.approve = async function (transactionId) {
   }
 };
 
+transactionSchema.statics.reject = async function (transactionId) {
+  try {
+    const transactionInfo = await Transaction.findById(transactionId);
+    if (!transactionInfo) {
+      throw new Error("Transaction not found!");
+    }
+    transactionInfo.status = "failed";
+    await transactionInfo.save();
+    return transactionInfo;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const Transaction = mongoose.model("Transaction", transactionSchema);
 module.exports = Transaction;
