@@ -1,26 +1,6 @@
 const generateOTP = () => {
   const length = 6;
-  const characters = [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    0,
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "I",
-    "J",
-  ];
+  const characters = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
   let otpCode = "";
 

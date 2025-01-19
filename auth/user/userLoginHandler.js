@@ -35,6 +35,7 @@ const loginUser = async (req, res) => {
       isProfileComplete,
       country,
       isBanned,
+      email,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

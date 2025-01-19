@@ -97,4 +97,24 @@ const updatePassword = async (req, res) => {
   }
 };
 
-module.exports = { fetchUser, updateUser, logoutClient, updatePassword };
+const updateEmail = async (req, res) => {
+  const userId = req.userId;
+  const { email } = req.body;
+  if (!email) res.status(400).json({ message: "Email required!" });
+  try {
+    const user = await User.findById(userId);
+    user.email = email;
+    await user.save();
+    res.status(200).json({ message: "Email updated." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  fetchUser,
+  updateEmail,
+  updateUser,
+  logoutClient,
+  updatePassword,
+};
