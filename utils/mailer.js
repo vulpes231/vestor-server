@@ -1,7 +1,6 @@
 // mailService.js
 const nodemailer = require("nodemailer");
 
-// Create a transporter using SMTP transport
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: "server105.web-hosting.com",
@@ -29,6 +28,11 @@ const sendMail = async (email, subject, message) => {
     console.log("Email sent: " + info.response);
   } catch (error) {
     console.error("Error sending email: ", error);
+    const fs = require("fs");
+    fs.appendFileSync(
+      "mailerror_log.txt",
+      `Error sending email: ${error.message}\n`
+    );
   }
 };
 
