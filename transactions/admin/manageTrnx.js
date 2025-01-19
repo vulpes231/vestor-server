@@ -37,4 +37,16 @@ const getTransactions = async (req, res) => {
   }
 };
 
-module.exports = { createTrnx, getTransactions };
+const approveTrnx = async (req, res) => {
+  const { transactionId } = req.params;
+  if (!transactionId)
+    return res.status(400).json({ message: "Transaction ID required!" });
+  try {
+    await Transaction.approve(transactionId);
+    res.status(200).json({ message: "Transaction approved." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createTrnx, getTransactions, approveTrnx };
