@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const User = require("./User");
 const Wallet = require("./Wallet");
 const { format } = require("date-fns");
+const { sendMail } = require("../utils/mailer");
 
 const Schema = mongoose.Schema;
 
@@ -269,6 +270,11 @@ transactionSchema.statics.approve = async function (transactionId) {
       throw new Error("Transaction not found!");
     }
 
+    const user = await User.findOne({ _id: transactionInfo.owner });
+    if (!user) {
+      throw new Error("User not found!");
+    }
+
     const userWallets = await Wallet.find({ ownerId: transactionInfo.owner });
 
     const depositWallet = userWallets.find(
@@ -276,8 +282,18 @@ transactionSchema.statics.approve = async function (transactionId) {
     );
 
     depositWallet.balance += transactionInfo.amount;
-
     await depositWallet.save();
+
+    const subject = "Deposit Confirmation";
+    const message = ` 
+      <h2> Hi ${user.username} </h2>
+      <p> Your deposit of ${transactionInfo.amount} USD is complete. Login to your account for further information. </p>
+
+      <small>Vestor &copy; 2025.</small>
+    `;
+    const email = user.email;
+
+    await sendMail(email, subject, message);
 
     transactionInfo.status = "completed";
     await transactionInfo.save();
@@ -293,6 +309,23 @@ transactionSchema.statics.reject = async function (transactionId) {
     if (!transactionInfo) {
       throw new Error("Transaction not found!");
     }
+
+    const user = await User.findOne({ _id: transactionInfo.owner });
+    if (!user) {
+      throw new Error("User not found!");
+    }
+
+    const subject = "Deposit Confirmation";
+    const message = ` 
+      <h2> Hi ${user.username} </h2>
+      <p> Your deposit of ${transactionInfo.amount} USD has failed. Login to your account for further information. </p>
+
+      <small>Vestor &copy; 2025.</small>
+    `;
+    const email = user.email;
+
+    await sendMail(email, subject, message);
+
     transactionInfo.status = "failed";
     await transactionInfo.save();
     return transactionInfo;
