@@ -12,6 +12,9 @@ const transactionSchema = new Schema(
       ref: "User",
       required: true,
     },
+    email: {
+      type: String,
+    },
     type: {
       type: String,
     },
@@ -104,6 +107,7 @@ transactionSchema.statics.depositFund = async function (
     const currentDate = format(new Date(), "EEE d MMM, yyyy");
     const depositTrnx = {
       owner: user._id,
+      email: user.email,
       type: "deposit",
       amount: transactionData.amount,
       coin: transactionData.coin,
@@ -153,6 +157,7 @@ transactionSchema.statics.withdrawFund = async function (
     const newWithdrawal = {
       owner: user._id,
       type: "withdraw",
+      email: user.email,
       amount: transactionData.amount,
       coin: transactionData.coin,
       memo: transactionData.memo || "Withdrawal",
@@ -212,6 +217,7 @@ transactionSchema.statics.transferFund = async function (
     const newTransfer = {
       owner: user._id,
       type: "transfer",
+      email: user.email,
       amount: transactionData.amount,
       coin: transactionData.coin,
       memo: transactionData.memo || "Transfer",
@@ -266,7 +272,7 @@ transactionSchema.statics.approve = async function (transactionId) {
     const userWallets = await Wallet.find({ ownerId: transactionInfo.owner });
 
     const depositWallet = userWallets.find(
-      (wallet) => wallet.walletName === "deposit"
+      (wallet) => wallet.walletName === "Deposit"
     );
 
     depositWallet.balance += transactionInfo.amount;

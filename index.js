@@ -26,7 +26,7 @@ app.use("/auth", require("./auth/user/userLoginRoute"));
 app.use("/signup", require("./enroll/user/enrollUserRoute"));
 
 // admin auth
-app.use("/authadmin", require("./auth/admin/adminAuthRoute"));
+app.use("/signin", require("./auth/admin/adminAuthRoute"));
 app.use("/", require("./routes/root"));
 
 app.use(verifyJWT);
@@ -49,6 +49,7 @@ app.use("/managepool", require("./invest/admin/managePoolRoute"));
 app.use("/managetrade", require("./trades/admin/manageTradeRoute"));
 app.use("/manageverify", require("./verify/admin/manageVerifyRoute"));
 app.use("/manageadmin", require("./profiles/admin/adminProfileRoute"));
+app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 
 app.use(errorLogger);
 
