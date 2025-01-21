@@ -62,6 +62,9 @@ verificationSchema.statics.approveAccount = async function (verifyData) {
     if (!user) {
       throw new Error("Invalid userId");
     }
+    if (user.isKYCVerified) {
+      throw new Error("User already verified!");
+    }
 
     const verifyRequest = await Verification.findById(verifyData.verifyId);
     if (!verifyRequest) {
