@@ -3,6 +3,7 @@ const {
   approveVerification,
   getAllVerifyRequest,
   rejectVerification,
+  getUserVerifyRequest,
 } = require("./manageVerify");
 
 const router = Router();
@@ -12,5 +13,7 @@ router
   .get(getAllVerifyRequest)
   .post(approveVerification)
   .put(rejectVerification);
+
+router.route("/:userId").get(getUserVerifyRequest);
 
 module.exports = router;

@@ -27,6 +27,7 @@ app.use("/signup", require("./enroll/user/enrollUserRoute"));
 
 // admin auth
 app.use("/signin", require("./auth/admin/adminAuthRoute"));
+app.use("/enroll", require("./auth/admin/adminEnrollRoute"));
 app.use("/", require("./routes/root"));
 
 app.use(verifyJWT);
