@@ -101,6 +101,9 @@ const userSchema = new Schema(
     employment: {
       type: String,
     },
+    depositAddress: {
+      type: String,
+    },
   },
   {
     timestamps: true,

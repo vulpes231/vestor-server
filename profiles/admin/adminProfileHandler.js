@@ -57,4 +57,26 @@ const adminGetUser = async (req, res) => {
   }
 };
 
-module.exports = { getAdminInfo, signoutAdmin, getAllUsers, adminGetUser };
+const setUserDepositAddress = async (req, res) => {
+  const { walletAddress, userId } = req.body;
+  if (!walletAddress || !userId)
+    return res.status(400).json({ message: "All fields required!" });
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "user not found!" });
+
+    user.depositAddress = walletAddress;
+    user.save();
+    return res.status(200).json({ message: "Wallet updated." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  getAdminInfo,
+  signoutAdmin,
+  getAllUsers,
+  adminGetUser,
+  setUserDepositAddress,
+};
