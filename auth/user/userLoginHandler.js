@@ -1,4 +1,5 @@
 const User = require("../../models/User");
+const { sendMail } = require("../../utils/mailer");
 
 // Login route handler
 const loginUser = async (req, res) => {
@@ -20,6 +21,8 @@ const loginUser = async (req, res) => {
       country,
       username,
       isBanned,
+      otpCode,
+      isEmailVerified,
     } = await User.loginUser(loginData);
 
     // Set refresh token in HTTP-only cookie
@@ -36,6 +39,8 @@ const loginUser = async (req, res) => {
       country,
       isBanned,
       email,
+      otpCode,
+      isEmailVerified,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

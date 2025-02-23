@@ -111,10 +111,26 @@ const updateEmail = async (req, res) => {
   }
 };
 
+const verifyEmail = async (req, res) => {
+  const userId = req.userId;
+  const { serverCode, userCode } = req.body;
+  if (!serverCode || !userCode)
+    res.status(400).json({ message: "Bad request!" });
+  try {
+    const verifyData = { serverCode, userCode, userId };
+    await User.verifyMailAddress(verifyData);
+
+    res.status(200).json({ message: "Email verified." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   fetchUser,
   updateEmail,
   updateUser,
   logoutClient,
   updatePassword,
+  verifyEmail,
 };

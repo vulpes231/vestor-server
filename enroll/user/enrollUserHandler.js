@@ -8,14 +8,20 @@ const enrollUser = async (req, res) => {
   }
   try {
     const userData = { username, password, email, country, confirmPassword };
-    const { accessToken, refreshToken } = await User.registerUser(userData);
+    const { accessToken, refreshToken, code } = await User.registerUser(
+      userData
+    );
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res
       .status(200)
-      .json({ message: `User ${username} account created!`, accessToken });
+      .json({
+        message: `User ${username} account created!`,
+        accessToken,
+        code,
+      });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

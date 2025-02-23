@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendMail } = require("../utils/mailer");
+const { generateOTP } = require("../utils/generateCode");
 require("dotenv");
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
@@ -49,6 +51,10 @@ const userSchema = new Schema(
       type: String,
     },
     isKYCVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isEmailVerified: {
       type: Boolean,
       default: false,
     },
@@ -130,6 +136,11 @@ userSchema.statics.loginUser = async function (loginData) {
       throw new Error("Invalid username or password!");
     }
 
+    const subject = "Vestor Login OTP Code";
+    const code = generateOTP();
+    const message = `Your login verification code is ${code}`;
+    await sendMail(user.email, subject, message);
+
     // Generate tokens
     const accessToken = jwt.sign(
       { username: user.username, userId: user._id },
@@ -153,6 +164,8 @@ userSchema.statics.loginUser = async function (loginData) {
       country: user.country,
       username: user.username,
       isBanned: user.isBanned,
+      otpCode: code,
+      isEmailVerified: user.isEmailVerified,
     };
   } catch (error) {
     console.error(error);
@@ -287,21 +300,26 @@ userSchema.statics.registerUser = async function (userData) {
       walletName: "Invest",
     });
 
+    const subject = "Verify your email address";
+    const code = generateOTP();
+    const message = `Welcome ${newUser.username}, Thank you for joining Vestor Markets. Your email verification code is ${code}`;
+    await sendMail(newUser.email, subject, message);
+
     const accessToken = jwt.sign(
       { username: newUser.username, userId: newUser._id },
       ACCESS_TOKEN_SECRET,
-      { expiresIn: "1day" }
+      { expiresIn: "1d" }
     );
     const refreshToken = jwt.sign(
       { username: newUser.username, userId: newUser._id },
       REFRESH_TOKEN_SECRET,
-      { expiresIn: "1day" }
+      { expiresIn: "3d" }
     );
 
     newUser.refreshToken = refreshToken;
     await newUser.save();
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, code };
   } catch (error) {
     console.error(error);
     throw error;
@@ -327,6 +345,23 @@ userSchema.statics.changePassword = async function (userId, passwordData) {
     return true;
   } catch (error) {
     console.error(error);
+    throw error;
+  }
+};
+
+userSchema.statics.verifyMailAddress = async function (userId) {
+  try {
+    const user = await User.findById(userId);
+
+    if (user.isEmailVerified) {
+      throw new Error("Email already verified");
+    }
+
+    user.isEmailVerified = true;
+
+    await user.save;
+    return user;
+  } catch (error) {
     throw error;
   }
 };
