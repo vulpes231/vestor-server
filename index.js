@@ -34,6 +34,7 @@ app.use(verifyJWT);
 // user auth routes
 app.use("/user", require("./profiles/user/userProfileRoute"));
 app.use("/wallet", require("./wallets/user/userWalletRoute"));
+app.use("/ticket", require("./ticket/user/ticketRoute"));
 app.use("/trnx", require("./transactions/user/trnxRoute"));
 app.use("/pool", require("./invest/user/investRoute"));
 app.use("/trade", require("./trades/user/tradeRoute"));

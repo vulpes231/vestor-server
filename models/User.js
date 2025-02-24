@@ -349,17 +349,21 @@ userSchema.statics.changePassword = async function (userId, passwordData) {
   }
 };
 
-userSchema.statics.verifyMailAddress = async function (userId) {
+userSchema.statics.verifyMailAddress = async function (verifyData) {
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(verifyData.userId);
 
     if (user.isEmailVerified) {
       throw new Error("Email already verified");
     }
 
+    if (verifyData.serverCode !== verifyData.userCode) {
+      throw new Error("Invalid verification code");
+    }
+
     user.isEmailVerified = true;
 
-    await user.save;
+    await user.save();
     return user;
   } catch (error) {
     throw error;
