@@ -9,10 +9,9 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  preflightContinue: false,
+
   optionsSuccessStatus: 200,
-  credentials: true, // Allow credentials (cookies) to be sent with the request
+  exposedHeaders: ["Access-Control-Allow-Origin"],
 };
 
 module.exports = { corsOptions };
