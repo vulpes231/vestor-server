@@ -110,6 +110,13 @@ const userSchema = new Schema(
     depositAddress: {
       type: String,
     },
+    canWithdraw: {
+      type: Boolean,
+      default: true,
+    },
+    customWithdrawalMsg: {
+      type: String,
+    },
   },
   {
     timestamps: true,

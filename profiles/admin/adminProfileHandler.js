@@ -73,10 +73,52 @@ const setUserDepositAddress = async (req, res) => {
   }
 };
 
+const disableWithdrawal = async (req, res) => {
+  const { userId, message } = req.body;
+  if (!userId || !message)
+    return res.status(400).json({ message: "All fields required!" });
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "user not found!" });
+
+    if (!user.canWithdraw)
+      return res.status(400).json({ message: "Already disabled!" });
+
+    user.customWithdrawalMsg = message;
+
+    user.canWithdraw = false;
+    await user.save();
+
+    return res.status(200).json({ message: "Withdrawal disabled." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const enableWithdrawal = async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ message: "All fields required!" });
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "user not found!" });
+
+    user.customWithdrawalMsg = "";
+
+    user.canWithdraw = true;
+    await user.save();
+
+    return res.status(200).json({ message: "Withdrawal disabled." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAdminInfo,
   signoutAdmin,
   getAllUsers,
   adminGetUser,
   setUserDepositAddress,
+  disableWithdrawal,
+  enableWithdrawal,
 };
