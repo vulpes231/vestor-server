@@ -9,7 +9,7 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  withCredentials: true,
+  credentials: true,
   optionsSuccessStatus: 200,
   exposedHeaders: ["Access-Control-Allow-Origin"],
 };

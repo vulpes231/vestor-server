@@ -224,7 +224,7 @@ transactionSchema.statics.transferFund = async function (
       type: "transfer",
       email: user.email,
       amount: transactionData.amount,
-      coin: transactionData.coin,
+      coin: transactionData.coin || "Wallet",
       memo: transactionData.memo || "Transfer",
       sender: withdrawAccount.walletName.toLowerCase(),
       receiver: receiver.walletName.toLowerCase(),

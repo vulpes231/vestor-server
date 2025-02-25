@@ -39,13 +39,12 @@ const makeWithdrawal = async (req, res) => {
 
 const makeTransfer = async (req, res) => {
   const userId = req.userId;
-  const { amount, coin, memo, sender, receiver } = req.body;
-  if (!amount || !coin || !sender || !receiver)
+  const { amount, memo, sender, receiver } = req.body;
+  if (!amount || !sender || !receiver)
     return res.status(400).json({ message: "Bad request!" });
   try {
     const transactionData = {
       amount,
-      coin,
       memo,
       sender,
       receiver,
