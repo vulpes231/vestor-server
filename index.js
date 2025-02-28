@@ -51,6 +51,7 @@ app.use("/managepool", require("./invest/admin/managePoolRoute"));
 app.use("/managetrade", require("./trades/admin/manageTradeRoute"));
 app.use("/manageverify", require("./verify/admin/manageVerifyRoute"));
 app.use("/manageadmin", require("./profiles/admin/adminProfileRoute"));
+app.use("/manageticket", require("./ticket/admin/adminTicketRoute"));
 app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 
 app.use(errorLogger);

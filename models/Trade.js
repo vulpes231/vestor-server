@@ -4,38 +4,44 @@ const User = require("./User");
 const Bot = require("./Bot");
 const Wallet = require("./Wallet");
 
-const tradeSchema = new Schema({
-  date: {
-    type: String,
+const tradeSchema = new Schema(
+  {
+    market: {
+      type: String,
+    },
+    amount: {
+      type: Number,
+    },
+    roi: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Bot",
+    },
+    createdFor: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
-  market: {
-    type: String,
-  },
-  amount: {
-    type: Number,
-  },
-  roi: {
-    type: Number,
-    default: 0,
-  },
-  status: {
-    type: String,
-  },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: "Bot",
-  },
-  createdFor: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 tradeSchema.statics.createNewTrade = async function (tradeData) {
   try {
     const user = await User.findById(tradeData.userId);
     if (!user) {
       throw new Error("Invalid userId");
+    }
+
+    if (!user.isProfileComplete) {
+      throw new Error("Complete profile!");
     }
 
     const bot = await Bot.findById(tradeData.botId);
@@ -45,16 +51,18 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
 
     const userWallets = await Wallet.find({ ownerId: user._id });
     const investWallet = userWallets.find(
-      (wallet) => wallet.walletName === "invest"
+      (wallet) => wallet.walletName === "Invest"
     );
+
+    console.log(userWallets);
+    console.log(investWallet);
+    // console.log(userWallets);
 
     if (investWallet.balance < parseFloat(tradeData.amount)) {
       throw new Error("Insufficient funds in invest wallet");
     }
 
-    const currentDate = format(new Date(), "EEE d MMM, yyyy");
     const newTradeData = {
-      date: currentDate,
       market: tradeData.market,
       amount: tradeData.amount,
       roi: tradeData.roi || 0,

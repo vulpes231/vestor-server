@@ -118,6 +118,29 @@ ticketSchema.statics.replyTicket = async function (ticketData) {
   }
 };
 
+ticketSchema.statics.adminReply = async function (ticketData) {
+  try {
+    const ticket = await Ticket.findById(ticketData.ticketId);
+
+    if (!ticket) {
+      throw new Error("Ticket not found!");
+    }
+
+    const msgData = {
+      sender: ticketData.adminId,
+      ticketId: ticketData.ticketId,
+      msg: ticketData.message,
+    };
+
+    ticket.messages.push(msgData);
+
+    await ticket.save();
+    return ticket;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const Ticket = mongoose.model("Ticket", ticketSchema);
 
 module.exports = Ticket;
