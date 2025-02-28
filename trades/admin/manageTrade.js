@@ -20,11 +20,11 @@ const updateTrade = async (req, res) => {
   const isAdmin = req.isAdmin;
   if (!isAdmin) return res.status(403).json({ message: "Forbidden access!" });
 
-  const { tradeId, roi } = req.body;
-  if (!tradeId || !roi)
+  const { tradeId, roi, action } = req.body;
+  if (!tradeId || !roi || !action)
     return res.status(400).json({ message: "Bad request!" });
   try {
-    const tradeData = { tradeId, roi };
+    const tradeData = { tradeId, roi, action };
     await Trade.editTrade(tradeData);
     res.status(200).json({ message: "Position updated." });
   } catch (error) {

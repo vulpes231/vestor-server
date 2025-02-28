@@ -143,12 +143,18 @@ tradeSchema.statics.editTrade = async function (tradeData) {
       throw new Error("Invalid tradeId");
     }
 
-    if (tradeData.roi) {
-      trade.roi = tradeData.roi;
+    if (tradeData.roi && tradeData.action) {
+      const amount = parseFloat(tradeData.roi);
+
+      if (tradeData.action === "add") {
+        trade.roi += amount;
+      } else {
+        trade.roi -= amount;
+      }
     }
 
     await trade.save();
-    return newTrade;
+    return trade;
   } catch (error) {
     throw error;
   }
