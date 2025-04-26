@@ -2,7 +2,7 @@ const Transaction = require("../../models/Transaction");
 
 const makeDeposit = async (req, res) => {
   const userId = req.userId;
-  const { amount, coin, memo } = req.body;
+  const { amount, coin, memo, method, paymentInfo } = req.body;
   if (!amount || !coin)
     return res.status(400).json({ message: "Bad request!" });
   try {
@@ -10,6 +10,8 @@ const makeDeposit = async (req, res) => {
       amount,
       coin,
       memo,
+      method,
+      paymentInfo,
     };
     await Transaction.depositFund(transactionData, userId);
     res.status(200).json({ message: "Deposit initiated." });
@@ -20,15 +22,17 @@ const makeDeposit = async (req, res) => {
 
 const makeWithdrawal = async (req, res) => {
   const userId = req.userId;
-  const { amount, coin, memo, receiver } = req.body;
-  if (!amount || !coin || !receiver)
+  const { amount, coin, memo, method, paymentInfo } = req.body;
+  if (!amount || !paymentInfo || !method)
     return res.status(400).json({ message: "Bad request!" });
   try {
     const transactionData = {
       amount,
       coin,
       memo,
-      receiver,
+      // receiver,
+      method,
+      paymentInfo,
     };
     await Transaction.withdrawFund(transactionData, userId);
     res.status(200).json({ message: "Withdrawal initiated." });

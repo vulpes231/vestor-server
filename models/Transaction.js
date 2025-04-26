@@ -22,6 +22,9 @@ const transactionSchema = new Schema(
     amount: {
       type: Number,
     },
+    method: {
+      type: String,
+    },
     coin: {
       type: String,
     },
@@ -43,6 +46,20 @@ const transactionSchema = new Schema(
     receiver: {
       type: String,
     },
+    paymentInfo: {
+      type: String,
+    },
+
+    // withdrawFrom: "deposit",
+    // walletAddress: "",
+    // amount: "",
+    // bankName: "",
+    // bankAddress: "",
+    // routing: "",
+    // account: "",
+    // acctName: "",
+    // coin: "btc",
+    // method: "",
   },
   {
     timestamps: true,
@@ -62,7 +79,6 @@ transactionSchema.statics.createTransaction = async function (
     if (userWallets.length < 0) {
       throw new Error("You have no active wallets");
     }
-    // console.log(userWallets);
 
     const depositAccount = userWallets.find(
       (wallet) => wallet.walletName.toLowerCase() === "deposit"
@@ -85,7 +101,10 @@ transactionSchema.statics.createTransaction = async function (
       date: transactionData.date,
       memo: transactionData.memo,
       status: "pending",
+      method: transactionData.method,
+      paymentInfo: transactionData.paymentInfo || null,
     };
+
     await Transaction.create(newTransaction);
     console.log("Balance after", depositAccount.balance);
 
@@ -115,6 +134,8 @@ transactionSchema.statics.depositFund = async function (
       memo: transactionData.memo || "Funds deposit",
       status: "pending",
       date: currentDate,
+      method: transactionData.method,
+      paymentInfo: transactionData.paymentInfo || null,
     };
     await Transaction.create(depositTrnx);
     return depositTrnx;
@@ -144,7 +165,7 @@ transactionSchema.statics.withdrawFund = async function (
     // console.log(userWallets);
 
     const withdrawAccount = userWallets.find(
-      (wallet) => wallet.walletName.toLowerCase() === transactionData.sender
+      (wallet) => wallet.walletName.toLowerCase() === "deposit"
     );
     if (!withdrawAccount) {
       throw new Error("Invalid withdraw from wallet");
@@ -159,6 +180,7 @@ transactionSchema.statics.withdrawFund = async function (
     withdrawAccount.balance -= parsedAmt;
     await withdrawAccount.save();
     const currentDate = format(new Date(), "EEE d MMM, yyyy");
+
     const newWithdrawal = {
       owner: user._id,
       type: "withdraw",
@@ -166,10 +188,12 @@ transactionSchema.statics.withdrawFund = async function (
       amount: transactionData.amount,
       coin: transactionData.coin,
       memo: transactionData.memo || "Withdrawal",
-      receiver: transactionData.receiver,
+      // receiver: transactionData.receiver,
       sender: withdrawAccount.walletName.toLowerCase(),
       status: "pending",
       date: currentDate,
+      method: transactionData.method,
+      paymentInfo: transactionData.paymentInfo || null,
     };
     await Transaction.create(newWithdrawal);
     console.log("Balance after", withdrawAccount.balance);
@@ -229,6 +253,7 @@ transactionSchema.statics.transferFund = async function (
       sender: withdrawAccount.walletName.toLowerCase(),
       receiver: receiver.walletName.toLowerCase(),
       status: "completed",
+      method: "wallet",
     };
     await Transaction.create(newTransfer);
     console.log("Balance after", withdrawAccount.balance);
