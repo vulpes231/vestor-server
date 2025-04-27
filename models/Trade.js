@@ -3,6 +3,7 @@ const { format } = require("date-fns");
 const User = require("./User");
 const Bot = require("./Bot");
 const Wallet = require("./Wallet");
+const { calculatePercentageChange } = require("../utils/generateCode");
 
 const tradeSchema = new Schema(
   {
@@ -12,16 +13,31 @@ const tradeSchema = new Schema(
     amount: {
       type: Number,
     },
+    entry: {
+      type: Number,
+    },
+    tp: {
+      type: Number,
+    },
+    sl: {
+      type: Number,
+    },
+    qty: {
+      type: Number,
+    },
+    leverage: {
+      type: String,
+    },
     roi: {
+      type: Number,
+      default: 0,
+    },
+    percentageChange: {
       type: Number,
       default: 0,
     },
     status: {
       type: String,
-    },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "Bot",
     },
     createdFor: {
       type: Schema.Types.ObjectId,
@@ -43,10 +59,8 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
     if (!user.isProfileComplete) {
       throw new Error("Complete profile!");
     }
-
-    const bot = await Bot.findById(tradeData.botId);
-    if (!bot) {
-      throw new Error("Plan not found!");
+    if (!user.isKYCVerified) {
+      throw new Error("Complete account verification!");
     }
 
     const userWallets = await Wallet.find({ ownerId: user._id });
@@ -54,26 +68,33 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       (wallet) => wallet.walletName === "Invest"
     );
 
-    console.log(userWallets);
-    console.log(investWallet);
-    // console.log(userWallets);
+    const cost = parseFloat(tradeData.amount);
+    const tradePrice = parseFloat(tradeData.entry);
 
-    if (investWallet.balance < parseFloat(tradeData.amount)) {
-      throw new Error("Insufficient funds in invest wallet");
+    if (investWallet.balance < cost) {
+      throw new Error("Insufficient funds in Investment wallet!");
     }
+
+    const change = calculatePercentageChange(cost, tradeData.roi).toFixed(2);
+
+    const quant = cost / tradePrice;
 
     const newTradeData = {
       market: tradeData.market,
-      amount: tradeData.amount,
+      amount: cost,
+      entry: tradePrice,
+      tp: tradeData.tp || null,
+      sl: tradeData.sl || null,
+      leverage: tradeData.leverage || null,
+      qty: quant,
       roi: tradeData.roi || 0,
       status: "open",
-      createdBy: bot._id,
       createdFor: user._id,
+      percentageChange: change,
     };
+
     const newTrade = await Trade.create(newTradeData);
 
-    bot.trades += 1;
-    await bot.save();
     return newTrade;
   } catch (error) {
     throw error;
@@ -138,7 +159,7 @@ tradeSchema.statics.getTotalProfit = async function (userId) {
 
 tradeSchema.statics.editTrade = async function (tradeData) {
   try {
-    const trade = await Trade.findById(tradeData.tradeId);
+    const trade = await this.findById(tradeData.tradeId);
     if (!trade) {
       throw new Error("Invalid tradeId");
     }
@@ -148,12 +169,22 @@ tradeSchema.statics.editTrade = async function (tradeData) {
 
       if (tradeData.action === "add") {
         trade.roi += amount;
-      } else {
+      } else if (tradeData.action === "subtract") {
         trade.roi -= amount;
+      } else {
+        throw new Error("Invalid action. Use 'add' or 'subtract'.");
       }
+
+      // After updating ROI, update percentageChange
+      trade.percentageChange = calculatePercentageChange(
+        trade.amount,
+        trade.roi
+      );
+
+      // Save the updated trade
+      await trade.save();
     }
 
-    await trade.save();
     return trade;
   } catch (error) {
     throw error;
@@ -174,7 +205,7 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
 
     const userWallets = await Wallet.find({ ownerId: user._id });
     const investWallet = userWallets.find(
-      (wallet) => wallet.walletName === "invest"
+      (wallet) => wallet.walletName === "Invest"
     );
 
     if (trade.roi > 0) {

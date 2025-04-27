@@ -9,6 +9,7 @@ const { corsOptions } = require("./configs/corsOptions");
 const { default: mongoose } = require("mongoose");
 const { connectDB } = require("./configs/connectDB");
 const { verifyJWT } = require("./middlewares/verifyJWT");
+const { startAssetCronJob } = require("./jobs/fetchAssets");
 require("dotenv").config();
 const PORT = process.env.PORT || 4500;
 
@@ -57,7 +58,12 @@ app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 app.use(errorLogger);
 
 mongoose.connection.once("connected", () => {
+  // startAssetCronJob();
   app.listen(PORT, () =>
     console.log(`Server started on http://localhost:${PORT}`)
   );
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("Database connection error:", err);
 });

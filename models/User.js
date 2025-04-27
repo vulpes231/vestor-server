@@ -107,8 +107,19 @@ const userSchema = new Schema(
     employment: {
       type: String,
     },
-    depositAddress: {
-      type: String,
+    walletDepositInfo: [
+      {
+        coin: { type: String },
+        network: { type: String },
+        address: { type: String },
+      },
+    ],
+    bankDepositInfo: {
+      bankName: { type: String },
+      account: { type: String },
+      routing: { type: String },
+      address: { type: String },
+      swift: { type: String },
     },
     canWithdraw: {
       type: Boolean,
