@@ -106,12 +106,27 @@ assetSchema.statics.getAllAssets = async function () {
   }
 };
 
-assetSchema.statics.getAssetById = async function (assetId) {
+assetSchema.statics.getAssetByParam = async function ({
+  assetSymbol,
+  assetId,
+}) {
   try {
-    const asset = await Asset.findById(assetId);
-    if (!asset) {
-      throw new Error("Asset not found!");
+    let asset;
+
+    if (assetSymbol) {
+      asset = await Asset.findOne({ symbol: assetSymbol });
+      if (!asset) {
+        throw new Error("Asset not found by symbol!");
+      }
+    } else if (assetId) {
+      asset = await Asset.findById(assetId);
+      if (!asset) {
+        throw new Error("Asset not found by ID!");
+      }
+    } else {
+      throw new Error("Either assetSymbol or assetId must be provided!");
     }
+
     return asset;
   } catch (error) {
     console.log("Error getting asset", error.message);

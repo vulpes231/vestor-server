@@ -9,7 +9,7 @@ const {
 
 const router = Router();
 
-router.route("/").get(userTrades).post(buyAsset);
+router.route("/").get(userTrades).post(buyAsset).put(sellAsset);
 router.route("/active").get(activeTrades);
 router.route("/profit").get(totalProfit);
 router.route("/close").post(sellAsset);

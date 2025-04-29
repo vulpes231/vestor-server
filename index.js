@@ -40,6 +40,7 @@ app.use("/trnx", require("./transactions/user/trnxRoute"));
 app.use("/pool", require("./invest/user/investRoute"));
 app.use("/trade", require("./trades/user/tradeRoute"));
 app.use("/otp", require("./mailsend/user/sendMailRoute"));
+app.use("/assets", require("./asset/assetRoute"));
 app.use(
   "/verify",
   upload.single("image"),

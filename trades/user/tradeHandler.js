@@ -33,11 +33,22 @@ const totalProfit = async (req, res) => {
 const buyAsset = async (req, res) => {
   const userId = req.userId;
 
-  const { market, amount, roi, entry, sl, tp, leverage } = req.body;
-  if (!amount || !market || !userId || !entry)
+  const { assetName, assetSymbol, amount, roi, sl, tp, leverage, type } =
+    req.body;
+  if (!amount || !assetName || !assetSymbol || !userId || !type)
     return res.status(400).json({ message: "Bad request!" });
   try {
-    const tradeData = { userId, market, amount, roi, entry, sl, tp, leverage };
+    const tradeData = {
+      userId,
+      assetName,
+      assetSymbol,
+      amount,
+      roi: roi || 0,
+      sl,
+      tp,
+      leverage,
+      type,
+    };
     await Trade.createNewTrade(tradeData);
     res.status(200).json({ message: "New position opened." });
   } catch (error) {

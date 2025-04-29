@@ -4,10 +4,20 @@ const User = require("./User");
 const Bot = require("./Bot");
 const Wallet = require("./Wallet");
 const { calculatePercentageChange } = require("../utils/generateCode");
+const Asset = require("./Asset");
 
 const tradeSchema = new Schema(
   {
     market: {
+      type: String,
+    },
+    symbol: {
+      type: String,
+    },
+    type: {
+      type: String,
+    },
+    img: {
       type: String,
     },
     amount: {
@@ -33,8 +43,8 @@ const tradeSchema = new Schema(
       default: 0,
     },
     percentageChange: {
-      type: Number,
-      default: 0,
+      type: String,
+      default: "0",
     },
     status: {
       type: String,
@@ -68,21 +78,40 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       (wallet) => wallet.walletName === "Invest"
     );
 
+    const assets = await Asset.getAllAssets();
+    const assetData = assets.find(
+      (ast) => ast.symbol === tradeData.assetSymbol
+    );
+
     const cost = parseFloat(tradeData.amount);
-    const tradePrice = parseFloat(tradeData.entry);
+    const tradePrice = parseFloat(assetData.price);
+
+    if (isNaN(cost) || isNaN(tradePrice)) {
+      throw new Error("Invalid amount or entry price");
+    }
 
     if (investWallet.balance < cost) {
       throw new Error("Insufficient funds in Investment wallet!");
     }
 
-    const change = calculatePercentageChange(cost, tradeData.roi).toFixed(2);
+    investWallet.balance -= cost;
+
+    await investWallet.save();
+
+    const change = calculatePercentageChange(cost, tradeData.roi);
 
     const quant = cost / tradePrice;
+    if (isNaN(quant)) {
+      throw new Error("Invalid quantity calculation");
+    }
 
     const newTradeData = {
-      market: tradeData.market,
+      market: assetData.name,
+      symbol: assetData.symbol,
+      type: tradeData.type,
+      img: assetData.img,
       amount: cost,
-      entry: tradePrice,
+      entry: assetData.price,
       tp: tradeData.tp || null,
       sl: tradeData.sl || null,
       leverage: tradeData.leverage || null,
@@ -94,7 +123,6 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
     };
 
     const newTrade = await Trade.create(newTradeData);
-
     return newTrade;
   } catch (error) {
     throw error;

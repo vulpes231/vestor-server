@@ -14,7 +14,7 @@ const generateOTP = () => {
 
 function calculatePercentageChange(amount, profitOrLoss) {
   if (amount === 0) return 0;
-  return (profitOrLoss / amount) * 100;
+  return (parseFloat(profitOrLoss) / amount) * 100;
 }
 
 module.exports = { generateOTP, calculatePercentageChange };
