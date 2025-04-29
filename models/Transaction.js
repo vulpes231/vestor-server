@@ -119,28 +119,91 @@ transactionSchema.statics.depositFund = async function (
   userId
 ) {
   try {
-    const user = await User.findOne({ _id: userId });
-    if (!user) {
-      throw new Error("User not found!");
+    // Validate input
+    if (!transactionData || !userId) {
+      throw new Error("Transaction data and user ID are required");
     }
 
-    const currentDate = format(new Date(), "EEE d MMM, yyyy");
+    const requiredFields =
+      transactionData.method === "bank"
+        ? ["method", "amount"]
+        : ["method", "amount", "coin"];
+    for (const field of requiredFields) {
+      if (!transactionData[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+
+    // Find user
+    const user = await User.findById(userId).select(
+      "+bankDepositInfo +walletDepositInfo"
+    );
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Determine payment info based on method
+    let paymentInfo;
+    if (transactionData.method === "bank") {
+      // Validate bank info exists
+      if (
+        !user.bankDepositInfo ||
+        !user.bankDepositInfo.bankName ||
+        !user.bankDepositInfo.account
+      ) {
+        throw new Error("User bank deposit information is incomplete");
+      }
+      paymentInfo = `${user.bankDepositInfo.bankName} (Account: ${user.bankDepositInfo.account})`;
+    } else {
+      // Crypto deposit - validate wallet info exists
+      if (!user.walletDepositInfo) {
+        throw new Error("User wallet deposit information not found");
+      }
+
+      // Map coin types to wallet addresses
+      const coinAddressMap = {
+        btc: user.walletDepositInfo.btc,
+        ethArb: user.walletDepositInfo.ethArb,
+        ethErc: user.walletDepositInfo.ethErc,
+        usdtErc: user.walletDepositInfo.usdtErc,
+        usdtTrc: user.walletDepositInfo.usdtTrc,
+      };
+
+      // Get the address for the specified coin
+      const coinKey = transactionData.coin
+        .replace(/[^a-zA-Z]/g, "")
+        .toLowerCase();
+      paymentInfo = coinAddressMap[coinKey];
+
+      if (!paymentInfo) {
+        throw new Error(`No deposit address found for ${transactionData.coin}`);
+      }
+    }
+
+    // Create transaction record
     const depositTrnx = {
       owner: user._id,
       email: user.email,
       type: "deposit",
-      amount: transactionData.amount,
+      amount: Number(transactionData.amount),
       coin: transactionData.coin,
       memo: transactionData.memo || "Funds deposit",
       status: "pending",
-      date: currentDate,
+      date: format(new Date(), "EEE d MMM, yyyy"),
       method: transactionData.method,
-      paymentInfo: transactionData.paymentInfo || null,
+      paymentInfo: paymentInfo,
     };
-    await Transaction.create(depositTrnx);
-    return depositTrnx;
+
+    // Validate transaction data before saving
+    const transaction = new Transaction(depositTrnx);
+    await transaction.validate();
+
+    // Save transaction
+    const createdTransaction = await Transaction.create(depositTrnx);
+    return createdTransaction;
   } catch (error) {
-    throw error;
+    console.error("Deposit fund error:", error);
+    throw new Error(`Transaction creation failed: ${error.message}`);
   }
 };
 

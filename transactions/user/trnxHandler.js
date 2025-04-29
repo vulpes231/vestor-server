@@ -2,8 +2,8 @@ const Transaction = require("../../models/Transaction");
 
 const makeDeposit = async (req, res) => {
   const userId = req.userId;
-  const { amount, coin, memo, method, paymentInfo } = req.body;
-  if (!amount || !coin)
+  const { amount, coin, memo, method } = req.body;
+  if (!amount || !method)
     return res.status(400).json({ message: "Bad request!" });
   try {
     const transactionData = {
@@ -11,8 +11,10 @@ const makeDeposit = async (req, res) => {
       coin,
       memo,
       method,
-      paymentInfo,
     };
+
+    console.log(transactionData);
+
     await Transaction.depositFund(transactionData, userId);
     res.status(200).json({ message: "Deposit initiated." });
   } catch (error) {

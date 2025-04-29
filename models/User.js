@@ -107,13 +107,13 @@ const userSchema = new Schema(
     employment: {
       type: String,
     },
-    walletDepositInfo: [
-      {
-        coin: { type: String },
-        network: { type: String },
-        address: { type: String },
-      },
-    ],
+    walletDepositInfo: {
+      btc: { type: String },
+      ethErc: { type: String },
+      ethArb: { type: String },
+      usdtErc: { type: String },
+      usdtTrc: { type: String },
+    },
     bankDepositInfo: {
       bankName: { type: String },
       account: { type: String },
