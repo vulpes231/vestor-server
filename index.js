@@ -10,6 +10,7 @@ const { default: mongoose } = require("mongoose");
 const { connectDB } = require("./configs/connectDB");
 const { verifyJWT } = require("./middlewares/verifyJWT");
 const { startAssetCronJob } = require("./jobs/fetchAssets");
+const resetPassRouter = require("./resetpass/user/resetPassRoute");
 require("dotenv").config();
 const PORT = process.env.PORT || 4500;
 
@@ -17,16 +18,15 @@ connectDB();
 
 app.use(reqLogger);
 
+app.use(cors(corsOptions));
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors(corsOptions));
-
+app.use("/resetlink", resetPassRouter);
 app.use("/auth", require("./auth/user/userLoginRoute"));
 app.use("/signup", require("./enroll/user/enrollUserRoute"));
-
-// admin auth
 app.use("/signin", require("./auth/admin/adminAuthRoute"));
 app.use("/enroll", require("./auth/admin/adminEnrollRoute"));
 app.use("/", require("./routes/root"));
@@ -41,6 +41,7 @@ app.use("/pool", require("./invest/user/investRoute"));
 app.use("/trade", require("./trades/user/tradeRoute"));
 app.use("/otp", require("./mailsend/user/sendMailRoute"));
 app.use("/assets", require("./asset/assetRoute"));
+
 app.use(
   "/verify",
   upload.single("image"),
@@ -59,7 +60,7 @@ app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 app.use(errorLogger);
 
 mongoose.connection.once("connected", () => {
-  startAssetCronJob();
+  // startAssetCronJob();
   app.listen(PORT, () =>
     console.log(`Server started on http://localhost:${PORT}`)
   );

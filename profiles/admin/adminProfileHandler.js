@@ -61,19 +61,14 @@ const setUserDepositAddress = async (req, res) => {
   try {
     // Destructure request body
     const {
-      // walletAddress,
       userId,
       method,
       coin,
       bankName,
       account,
+      bankAddress,
       routing,
       address,
-      btcAddress,
-      ethErcAddress,
-      ethArbAddress,
-      usdtErcAddress,
-      usdtTrcAddress,
     } = req.body;
 
     // Validate required fields
@@ -104,11 +99,11 @@ const setUserDepositAddress = async (req, res) => {
     // Handle bank deposit method
     if (method === "bank") {
       // Validate bank fields
-      if (!bankName || !account || !routing || !address) {
+      if (!bankName || !account || !routing || !bankAddress) {
         return res.status(400).json({
           success: false,
           message:
-            "For bank method, bankName, account, routing, and address are required",
+            "method, bankName, account, routing, and bank address are required",
         });
       }
 
@@ -117,7 +112,7 @@ const setUserDepositAddress = async (req, res) => {
         bankName,
         account,
         routing,
-        address,
+        bankAddress,
       };
     }
     // Handle crypto deposit method
@@ -130,32 +125,15 @@ const setUserDepositAddress = async (req, res) => {
         });
       }
 
-      // Validate coin types and corresponding addresses
-      const coinAddressMap = {
-        btc: btcAddress,
-        usdtErc: usdtErcAddress,
-        usdtTrc: usdtTrcAddress,
-        ethArb: ethArbAddress,
-        ethErc: ethErcAddress,
-      };
-
-      if (!Object.keys(coinAddressMap).includes(coin)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid coin type",
-        });
+      if (
+        !user.walletDepositInfo ||
+        typeof user.walletDepositInfo !== "object" ||
+        Array.isArray(user.walletDepositInfo)
+      ) {
+        user.walletDepositInfo = {};
       }
 
-      const address = coinAddressMap[coin];
-      if (!address) {
-        return res.status(400).json({
-          success: false,
-          message: `Address is required for ${coin}`,
-        });
-      }
-
-      // Update wallet info
-      user.walletDepositInfo = user.walletDepositInfo || {};
+      // Set the address for the specific coin
       user.walletDepositInfo[coin] = address;
     }
 
@@ -165,19 +143,12 @@ const setUserDepositAddress = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Deposit information updated successfully",
-      data: {
-        method,
-        ...(method === "bank"
-          ? user.bankDepositInfo
-          : { coin, address: user.walletDepositInfo[coin] }),
-      },
     });
   } catch (error) {
     console.error("Error updating deposit address:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };

@@ -118,7 +118,7 @@ const userSchema = new Schema(
       bankName: { type: String },
       account: { type: String },
       routing: { type: String },
-      address: { type: String },
+      bankAddress: { type: String },
       swift: { type: String },
     },
     canWithdraw: {
@@ -128,6 +128,8 @@ const userSchema = new Schema(
     customWithdrawalMsg: {
       type: String,
     },
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
   },
   {
     timestamps: true,
