@@ -1,8 +1,8 @@
 const express = require("express");
-const { resetPassword } = require("./resetPassHandler");
+const { resetPassword, verifyAndReset } = require("./resetPassHandler");
 
 const router = express.Router();
 
-router.post("/", resetPassword);
+router.route("/").post(resetPassword).put(verifyAndReset);
 
 module.exports = router;

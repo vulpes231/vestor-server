@@ -43,6 +43,7 @@ const approveTrnx = async (req, res) => {
     return res.status(400).json({ message: "Transaction ID required!" });
   try {
     await Transaction.approve(transactionId);
+
     res.status(200).json({ message: "Transaction approved." });
   } catch (error) {
     res.status(500).json({ message: error.message });

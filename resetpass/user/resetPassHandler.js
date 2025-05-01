@@ -1,7 +1,8 @@
 const User = require("../../models/User");
 const { sendMail } = require("../../utils/mailer");
 const crypto = require("crypto");
-const { FRONTEND_BASE_URL } = process.env;
+const { FRONTEND_BASE_URL, FRONTEND_BASE_URL_DEV } = process.env;
+const bcrypt = require("bcryptjs");
 
 const resetPassword = async (req, res) => {
   const { email } = req.body;
@@ -14,8 +15,6 @@ const resetPassword = async (req, res) => {
       message: "Email address is required",
     });
   }
-
-  console.log("API Called");
 
   try {
     const user = await User.findOne({ email });
@@ -36,7 +35,7 @@ const resetPassword = async (req, res) => {
     await user.save();
 
     // Create secure reset URL
-    const resetUrl = `${FRONTEND_BASE_URL}/reset-password?token=${resetToken}&id=${user._id}`;
+    const resetUrl = `${FRONTEND_BASE_URL}/validate?token=${resetToken}&id=${user._id}`;
 
     // HTML email template
     const message = `
@@ -82,4 +81,50 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { resetPassword };
+const verifyAndReset = async (req, res) => {
+  const { token, id, newPassword } = req.body;
+
+  if (!token || !id || !newPassword)
+    return res.status(400).json({ message: "Bad request!", success: false });
+
+  try {
+    const user = await User.findById(id);
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "User not found!", success: false });
+
+    // 1. Check if token matches
+    if (user.resetToken !== token)
+      return res
+        .status(401)
+        .json({ message: "Invalid token!", success: false });
+
+    if (Date.now() > user.resetTokenExpiry) {
+      return res
+        .status(401)
+        .json({ message: "Token expired!", success: false });
+    }
+
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+
+    const hashedPass = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPass;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error resetting password!",
+    });
+  }
+};
+
+module.exports = { resetPassword, verifyAndReset };

@@ -244,6 +244,101 @@ transactionSchema.statics.withdrawFund = async function (
     await withdrawAccount.save();
     const currentDate = format(new Date(), "EEE d MMM, yyyy");
 
+    const message = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Withdrawal Request Confirmation</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                color: #333333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                border-bottom: 1px solid #eaeaea;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+            }
+            .logo {
+                color: #2d3748;
+                font-size: 24px;
+                font-weight: bold;
+                text-decoration: none;
+            }
+            .content {
+                padding: 0 0 20px 0;
+            }
+            .footer {
+                border-top: 1px solid #eaeaea;
+                padding-top: 20px;
+                font-size: 12px;
+                color: #777777;
+            }
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #2d3748;
+                color: #ffffff !important;
+                text-decoration: none;
+                border-radius: 4px;
+                margin: 15px 0;
+            }
+            .highlight {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="#" class="logo">Vestor Markets.</a>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #2d3748; margin-top: 0;">Withdrawal Request Received</h2>
+            
+            <p>Dear ${user.name || "Valued Customer"},</p>
+            
+            <p>We have received your withdrawal request with the following details:</p>
+            
+            <div class="highlight">
+                <p><strong>Cryptocurrency:</strong> ${transactionData.coin}</p>
+                <p><strong>Amount:</strong> ${parseFloat(
+                  transactionData.amount
+                )}</p>
+                <p><strong>Status:</strong> Processing</p>
+            </div>
+            
+            <p>Your transaction is currently being processed by our team. You will receive another email notification once your withdrawal has been approved and processed.</p>
+            
+            <p>If you did not initiate this request, please contact our support team immediately.</p>
+            
+            <a href="#" class="button">View Transaction Details</a>
+        </div>
+        
+        <div class="footer">
+            <p>© ${new Date().getFullYear()} Vestor Markets. All rights reserved.</p>
+            <p>
+                <a href="#" style="color: #2d3748; text-decoration: none;">Privacy Policy</a> | 
+                <a href="#" style="color: #2d3748; text-decoration: none;">Terms of Service</a>
+            </p>
+        </div>
+    </body>
+    </html>
+    `;
+
+    const subject = "Vestor Market - Withdrawal Requested";
+
+    await sendMail(user.email, subject, message);
+
     const newWithdrawal = {
       owner: user._id,
       type: "withdraw",
@@ -377,11 +472,99 @@ transactionSchema.statics.approve = async function (transactionId) {
     await depositWallet.save();
 
     const subject = "Deposit Confirmation";
-    const message = ` 
-      <h2> Hi ${user.username} </h2>
-      <p> Your deposit of ${transactionInfo.amount} USD is complete. Login to your account for further information. </p>
-
-      <small>Vestor &copy; 2025.</small>
+    const message = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deposit Confirmation | Vestor </title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                color: #333333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                border-bottom: 1px solid #eaeaea;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .logo {
+                color: #2d3748;
+                font-size: 24px;
+                font-weight: bold;
+                text-decoration: none;
+            }
+            .content {
+                padding: 0 0 20px 0;
+            }
+            .footer {
+                border-top: 1px solid #eaeaea;
+                padding-top: 20px;
+                font-size: 12px;
+                color: #777777;
+                text-align: center;
+            }
+            .button {
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #4f46e5;
+                color: #ffffff !important;
+                text-decoration: none;
+                border-radius: 6px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .highlight-box {
+                background-color: #f8fafc;
+                border-left: 4px solid #4f46e5;
+                padding: 16px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="#" class="logo">Vestor</a>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #2d3748; margin-top: 0;">Hi ${user.username},</h2>
+            
+            <p>We're pleased to inform you that your deposit has been successfully processed.</p>
+            
+            <div class="highlight-box">
+                <p style="margin: 0; font-size: 18px; font-weight: bold;">Amount Deposited: ${transactionInfo.amount} USD</p>
+            </div>
+            
+            <p>The funds are now available in your Vestor account. You can view your updated balance and transaction details by logging into your account.</p>
+            
+            <center>
+                <a href="#" class="button">Login to Your Account</a>
+            </center>
+            
+            <p>If you have any questions about this transaction or need assistance, please don't hesitate to contact our support team.</p>
+            
+            <p>Best regards,<br>The Vestor Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Vestor Markets. All rights reserved.</p>
+            <p>
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Privacy Policy</a> | 
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Terms of Service</a> |
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Contact Support</a>
+            </p>
+            <p>Vestor Financial Services, 123 Investment Street, New York, NY</p>
+        </div>
+    </body>
+    </html>
     `;
     const email = user.email;
 
