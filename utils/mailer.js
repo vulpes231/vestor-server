@@ -20,7 +20,8 @@ const sendMail = async (email, subject, message) => {
     from: process.env.EMAIL_ADDRESS,
     to: email,
     subject: subject,
-    text: message,
+    html: message, // This tells the email client to render as HTML
+    text: convertHtmlToText(message), // Fallback for plain text clients
   };
 
   try {
@@ -35,6 +36,16 @@ const sendMail = async (email, subject, message) => {
     );
   }
 };
+
+// Simple HTML-to-text conversion function
+function convertHtmlToText(html) {
+  return html
+    .replace(/<style[^>]*>.*<\/style>/gms, "") // Remove style tags
+    .replace(/<script[^>]*>.*<\/script>/gms, "") // Remove script tags
+    .replace(/<[^>]+>/g, "") // Remove all HTML tags
+    .replace(/\n{3,}/g, "\n\n") // Limit consecutive newlines
+    .trim();
+}
 
 module.exports = {
   sendMail,

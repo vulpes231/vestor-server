@@ -7,14 +7,14 @@ const createTrnx = async (req, res) => {
       .status(403)
       .json({ message: "You're not allowed on this server!" });
 
-  const { userId, type, amount, coin, date, memo } = req.body;
+  const { userId, amount, coin, date, memo, method } = req.body;
 
-  console.log(userId);
+  console.log(req.body);
 
-  if (!userId || !type || !amount || !coin || !date)
+  if (!userId || !amount || !date || !method)
     return res.status(400).json({ message: `Incomplete data!` });
   try {
-    const transactionData = { type, amount, coin, date, memo };
+    const transactionData = { amount, coin, date, memo, method };
     await Transaction.createTransaction(transactionData, userId);
     res.status(201).json({ message: "Transaction created." });
   } catch (error) {

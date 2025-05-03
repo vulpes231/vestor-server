@@ -1,14 +1,36 @@
 const Trade = require("../../models/Trade");
 
 const createTrade = async (req, res) => {
-  const isAdmin = req.isAdmin;
-  if (!isAdmin) return res.status(403).json({ message: "Forbidden access!" });
+  const adminId = req.adminId;
+  if (!adminId) return res.status(403).json({ message: "Forbidden" });
 
-  const { market, amount, roi, userId, botId } = req.body;
-  if (!amount || !market || !userId || !botId)
+  const {
+    assetName,
+    assetSymbol,
+    amount,
+    roi,
+    sl,
+    tp,
+    leverage,
+    type,
+    userId,
+    date,
+  } = req.body;
+  if (!amount || !assetName || !assetSymbol || !userId || !type || !date)
     return res.status(400).json({ message: "Bad request!" });
   try {
-    const tradeData = { market, amount, roi, userId, botId };
+    const tradeData = {
+      userId,
+      assetName,
+      assetSymbol,
+      amount,
+      roi: roi || 0,
+      sl,
+      tp,
+      leverage,
+      type,
+      date,
+    };
     await Trade.createNewTrade(tradeData);
     res.status(200).json({ message: "New position opened." });
   } catch (error) {
@@ -36,11 +58,10 @@ const closePosition = async (req, res) => {
   const isAdmin = req.isAdmin;
   if (!isAdmin) return res.status(403).json({ message: "Forbidden access!" });
 
-  const { tradeId, userId } = req.body;
-  if (!tradeId || !userId)
-    return res.status(400).json({ message: "Bad request!" });
+  const { tradeId } = req.body;
+  if (!tradeId) return res.status(400).json({ message: "Bad request!" });
   try {
-    const tradeData = { tradeId, userId };
+    const tradeData = { tradeId };
     await Trade.closeTrade(tradeData);
     res.status(200).json({ message: "Position closed." });
   } catch (error) {

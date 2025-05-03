@@ -49,17 +49,6 @@ const transactionSchema = new Schema(
     paymentInfo: {
       type: String,
     },
-
-    // withdrawFrom: "deposit",
-    // walletAddress: "",
-    // amount: "",
-    // bankName: "",
-    // bankAddress: "",
-    // routing: "",
-    // account: "",
-    // acctName: "",
-    // coin: "btc",
-    // method: "",
   },
   {
     timestamps: true,
@@ -87,22 +76,53 @@ transactionSchema.statics.createTransaction = async function (
       throw new Error("User has no deposit wallet");
     }
 
-    console.log("Balance before", depositAccount.balance);
+    let paymentInfo;
+    if (transactionData.method === "bank") {
+      // Validate bank info exists
+      if (
+        !user.bankDepositInfo ||
+        !user.bankDepositInfo.bankName ||
+        !user.bankDepositInfo.account
+      ) {
+        throw new Error("User bank deposit information is incomplete");
+      }
+      paymentInfo = `${user.bankDepositInfo.bankName} (Account: ${user.bankDepositInfo.account})`;
+    } else {
+      // Crypto deposit - validate wallet info exists
+      if (!user.walletDepositInfo) {
+        throw new Error("User wallet deposit information not found");
+      }
 
-    const parsedAmt = parseFloat(transactionData.amount);
-    depositAccount.balance += parsedAmt;
-    await depositAccount.save();
+      const coinAddressMap = {
+        btc: user.walletDepositInfo.btc,
+        ethArb: user.walletDepositInfo.ethArb,
+        ethErc: user.walletDepositInfo.ethErc,
+        usdtErc: user.walletDepositInfo.usdtErc,
+        usdtTrc: user.walletDepositInfo.usdtTrc,
+      };
+
+      // Get the address for the specified coin
+      const coinKey = transactionData.coin
+        .replace(/[^a-zA-Z]/g, "")
+        .toLowerCase();
+      paymentInfo = coinAddressMap[coinKey];
+
+      if (!paymentInfo) {
+        throw new Error(`No deposit address found for ${transactionData.coin}`);
+      }
+    }
 
     const newTransaction = {
       owner: user._id,
-      type: transactionData.type,
-      amount: transactionData.amount,
+      email: user.email,
+      type: "deposit",
+      amount: Number(transactionData.amount),
       coin: transactionData.coin,
-      date: transactionData.date,
-      memo: transactionData.memo,
+      memo: transactionData.memo || "Funds deposit",
       status: "pending",
+      date: transactionData.date || format(new Date(), "EEE d MMM, yyyy"),
       method: transactionData.method,
-      paymentInfo: transactionData.paymentInfo || null,
+      paymentInfo: paymentInfo,
     };
 
     await Transaction.create(newTransaction);
@@ -160,7 +180,6 @@ transactionSchema.statics.depositFund = async function (
         throw new Error("User wallet deposit information not found");
       }
 
-      // Map coin types to wallet addresses
       const coinAddressMap = {
         btc: user.walletDepositInfo.btc,
         ethArb: user.walletDepositInfo.ethArb,
@@ -462,17 +481,18 @@ transactionSchema.statics.approve = async function (transactionId) {
       throw new Error("User not found!");
     }
 
-    const userWallets = await Wallet.find({ ownerId: transactionInfo.owner });
+    if (transactionInfo.type === "deposit") {
+      const userWallets = await Wallet.find({ ownerId: transactionInfo.owner });
 
-    const depositWallet = userWallets.find(
-      (wallet) => wallet.walletName === "Deposit"
-    );
+      const depositWallet = userWallets.find(
+        (wallet) => wallet.walletName === "Deposit"
+      );
 
-    depositWallet.balance += transactionInfo.amount;
-    await depositWallet.save();
+      depositWallet.balance += transactionInfo.amount;
+      await depositWallet.save();
 
-    const subject = "Deposit Confirmation";
-    const message = `
+      const subject = "Deposit Confirmation";
+      const message = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -566,9 +586,10 @@ transactionSchema.statics.approve = async function (transactionId) {
     </body>
     </html>
     `;
-    const email = user.email;
+      const email = user.email;
 
-    await sendMail(email, subject, message);
+      await sendMail(email, subject, message);
+    }
 
     transactionInfo.status = "completed";
     await transactionInfo.save();

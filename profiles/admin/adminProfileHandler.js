@@ -71,6 +71,8 @@ const setUserDepositAddress = async (req, res) => {
       address,
     } = req.body;
 
+    console.log(req.body);
+
     // Validate required fields
     if (!userId || !method) {
       return res.status(400).json({

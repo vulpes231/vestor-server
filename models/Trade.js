@@ -49,6 +49,9 @@ const tradeSchema = new Schema(
     status: {
       type: String,
     },
+    date: {
+      type: String,
+    },
     createdFor: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -120,6 +123,7 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       status: "open",
       createdFor: user._id,
       percentageChange: change,
+      date: tradeData.date,
     };
 
     const newTrade = await Trade.create(newTradeData);
@@ -221,14 +225,14 @@ tradeSchema.statics.editTrade = async function (tradeData) {
 
 tradeSchema.statics.closeTrade = async function (tradeData) {
   try {
-    const user = await User.findById(tradeData.userId);
-    if (!user) {
-      throw new Error("Invalid userId");
-    }
-
     const trade = await Trade.findById(tradeData.tradeId);
     if (!trade) {
       throw new Error("Invalid tradeId");
+    }
+
+    const user = await User.findById(trade.createdFor);
+    if (!user) {
+      throw new Error("Invalid userId");
     }
 
     const userWallets = await Wallet.find({ ownerId: user._id });
