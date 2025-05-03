@@ -60,7 +60,7 @@ app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 app.use(errorLogger);
 
 mongoose.connection.once("connected", () => {
-  // startAssetCronJob();
+  startAssetCronJob();
   app.listen(PORT, () =>
     console.log(`Server started on http://localhost:${PORT}`)
   );
