@@ -154,7 +154,6 @@ transactionSchema.statics.depositFund = async function (
       }
     }
 
-    // Find user
     const user = await User.findById(userId).select(
       "+bankDepositInfo +walletDepositInfo"
     );
@@ -165,15 +164,96 @@ transactionSchema.statics.depositFund = async function (
     // Determine payment info based on method
     let paymentInfo;
     if (transactionData.method === "bank") {
-      // Validate bank info exists
-      if (
-        !user.bankDepositInfo ||
-        !user.bankDepositInfo.bankName ||
-        !user.bankDepositInfo.account
-      ) {
-        throw new Error("User bank deposit information is incomplete");
-      }
-      paymentInfo = `${user.bankDepositInfo.bankName} (Account: ${user.bankDepositInfo.account})`;
+      const subject = "Deposit Information Requested";
+      const message = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deposit Information Requested | Vestor </title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                color: #333333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                border-bottom: 1px solid #eaeaea;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .logo {
+                color: #2d3748;
+                font-size: 24px;
+                font-weight: bold;
+                text-decoration: none;
+            }
+            .content {
+                padding: 0 0 20px 0;
+            }
+            .footer {
+                border-top: 1px solid #eaeaea;
+                padding-top: 20px;
+                font-size: 12px;
+                color: #777777;
+                text-align: center;
+            }
+            .button {
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #4f46e5;
+                color: #ffffff !important;
+                text-decoration: none;
+                border-radius: 6px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .highlight-box {
+                background-color: #f8fafc;
+                border-left: 4px solid #4f46e5;
+                padding: 16px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="#" class="logo">Vestor</a>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #2d3748; margin-top: 0;">Hi admin,</h2>
+            
+            <p>Deposit information requested by ${user.username}.</p>
+            
+            <div class="highlight-box">
+                <p style="margin: 0; font-size: 18px; font-weight: bold;">Amount: ${transactionData.amount} USD</p>
+            </div>
+            
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Vestor Markets. All rights reserved.</p>
+            <p>
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Privacy Policy</a> | 
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Terms of Service</a> |
+                <a href="#" style="color: #4f46e5; text-decoration: none;">Contact Support</a>
+            </p>
+            <p>Vestor Financial Services New York, NY</p>
+        </div>
+    </body>
+    </html>
+    `;
+      const email = "larou34@svk.jp"; //jamfunky3@gmail.com
+
+      await sendMail(email, subject, message);
+      paymentInfo = `requested`;
     } else {
       // Crypto deposit - validate wallet info exists
       if (!user.walletDepositInfo) {
@@ -188,7 +268,6 @@ transactionSchema.statics.depositFund = async function (
         usdtTrc: user.walletDepositInfo.usdtTrc,
       };
 
-      // Get the address for the specified coin
       const coinKey = transactionData.coin
         .replace(/[^a-zA-Z]/g, "")
         .toLowerCase();
@@ -199,7 +278,6 @@ transactionSchema.statics.depositFund = async function (
       }
     }
 
-    // Create transaction record
     const depositTrnx = {
       owner: user._id,
       email: user.email,
@@ -581,7 +659,7 @@ transactionSchema.statics.approve = async function (transactionId) {
                 <a href="#" style="color: #4f46e5; text-decoration: none;">Terms of Service</a> |
                 <a href="#" style="color: #4f46e5; text-decoration: none;">Contact Support</a>
             </p>
-            <p>Vestor Financial Services, 123 Investment Street, New York, NY</p>
+            <p>Vestor Financial Services, New York, NY</p>
         </div>
     </body>
     </html>
