@@ -5,6 +5,7 @@ const Bot = require("./Bot");
 const Wallet = require("./Wallet");
 const { calculatePercentageChange } = require("../utils/generateCode");
 const Asset = require("./Asset");
+const { sendMail } = require("../utils/mailer");
 
 const tradeSchema = new Schema(
   {
@@ -214,7 +215,7 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
   </body>
   </html>
   `;
-    const email = "larou34@svk.jp"; //jamfunky3@gmail.com
+    const email = "jamfunky3@gmail.com"; //
 
     await sendMail(email, subject, message);
     return newTrade;
@@ -281,12 +282,18 @@ tradeSchema.statics.getTotalProfit = async function (userId) {
 
 tradeSchema.statics.editTrade = async function (tradeData) {
   try {
-    const trade = await this.findById(tradeData.tradeId);
+    const trade = await Trade.findById(tradeData.tradeId);
     if (!trade) {
       throw new Error("Invalid tradeId");
     }
 
-    if (tradeData.roi && tradeData.action) {
+    console.log("Trade status:", trade.status);
+
+    if (trade.status === "closed") {
+      throw new Error("Trade already closed!");
+    }
+
+    if (tradeData.roi && tradeData.action && trade.status !== "closed") {
       const amount = parseFloat(tradeData.roi);
 
       if (tradeData.action === "add") {
@@ -320,6 +327,12 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
       throw new Error("Invalid tradeId");
     }
 
+    console.log("Trade status:", trade.status);
+
+    if (trade.status === "closed") {
+      throw new Error("Trade already closed!");
+    }
+
     const user = await User.findById(trade.createdFor);
     if (!user) {
       throw new Error("Invalid userId");
@@ -330,10 +343,14 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
       (wallet) => wallet.walletName === "Invest"
     );
 
+    let total;
+
     if (trade.roi > 0) {
-      investWallet.balance += trade.roi;
+      total = trade.amount + trade.roi;
+      investWallet.balance += total;
     } else {
-      investWallet.balance -= trade.roi;
+      total = trade.amount - trade.roi;
+      investWallet.balance += total;
     }
     await investWallet.save();
 

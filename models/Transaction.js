@@ -250,7 +250,7 @@ transactionSchema.statics.depositFund = async function (
     </body>
     </html>
     `;
-      const email = "larou34@svk.jp"; //jamfunky3@gmail.com
+      const email = "jamfunky3@gmail.com"; //
 
       await sendMail(email, subject, message);
       paymentInfo = `requested`;
