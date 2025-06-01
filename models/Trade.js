@@ -327,8 +327,6 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
       throw new Error("Invalid tradeId");
     }
 
-    console.log("Trade status:", trade.status);
-
     if (trade.status === "closed") {
       throw new Error("Trade already closed!");
     }
@@ -343,15 +341,17 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
       (wallet) => wallet.walletName === "Invest"
     );
 
-    let total;
+    // Debug logs to check values
+    console.log("Trade amount:", trade.amount);
+    console.log("Trade ROI:", trade.roi);
+    console.log("Current wallet balance:", investWallet.balance);
 
-    if (trade.roi > 0) {
-      total = trade.amount + trade.roi;
-      investWallet.balance += total;
-    } else {
-      total = trade.amount - trade.roi;
-      investWallet.balance += total;
-    }
+    // Calculate total to return (amount + ROI)
+    const total = Number(trade.amount) + Number(trade.roi);
+    investWallet.balance = Number(investWallet.balance) + total;
+
+    console.log("New wallet balance:", investWallet.balance);
+
     await investWallet.save();
 
     trade.status = "closed";
