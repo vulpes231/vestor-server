@@ -1,11 +1,9 @@
 const User = require("../../models/User");
 const { sendMail } = require("../../utils/mailer");
 
-// Login route handler
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  // Validate input
   if (!email || !password) {
     return res
       .status(400)
@@ -25,13 +23,11 @@ const loginUser = async (req, res) => {
       isEmailVerified,
     } = await User.loginUser(loginData);
 
-    // Set refresh token in HTTP-only cookie
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Respond with the access token and user data
     res.status(200).json({
       accessToken,
       username,

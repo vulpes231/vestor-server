@@ -1,3 +1,6 @@
+const dns = require("node:dns/promises");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 const express = require("express");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
@@ -45,7 +48,7 @@ app.use("/assets", require("./asset/assetRoute"));
 app.use(
   "/verify",
   upload.single("image"),
-  require("./verify/user/verifyRoute")
+  require("./verify/user/verifyRoute"),
 );
 
 //admin auth routes
@@ -60,9 +63,9 @@ app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
 app.use(errorLogger);
 
 mongoose.connection.once("connected", () => {
-  startAssetCronJob();
+  // startAssetCronJob();
   app.listen(PORT, () =>
-    console.log(`Server started on http://localhost:${PORT}`)
+    console.log(`Server started on http://localhost:${PORT}`),
   );
 });
 
