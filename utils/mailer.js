@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: "server105.web-hosting.com",
+    host: "server311.web-hosting.com",
     port: 465,
     secure: true,
     auth: {
@@ -32,7 +32,7 @@ const sendMail = async (email, subject, message) => {
     const fs = require("fs");
     fs.appendFileSync(
       "mailerror_log.txt",
-      `Error sending email: ${error.message}\n`
+      `Error sending email: ${error.message}\n`,
     );
   }
 };

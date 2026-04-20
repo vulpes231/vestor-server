@@ -60,7 +60,7 @@ const tradeSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 tradeSchema.statics.createNewTrade = async function (tradeData) {
@@ -79,12 +79,12 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
 
     const userWallets = await Wallet.find({ ownerId: user._id });
     const investWallet = userWallets.find(
-      (wallet) => wallet.walletName === "Invest"
+      (wallet) => wallet.walletName === "Invest",
     );
 
     const assets = await Asset.getAllAssets();
     const assetData = assets.find(
-      (ast) => ast.symbol === tradeData.assetSymbol
+      (ast) => ast.symbol === tradeData.assetSymbol,
     );
 
     const cost = parseFloat(tradeData.amount);
@@ -109,6 +109,8 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       throw new Error("Invalid quantity calculation");
     }
 
+    const currentDate = format(new Date(), "EEE d MMM, yyyy");
+
     const newTradeData = {
       market: assetData.name,
       symbol: assetData.symbol,
@@ -124,7 +126,7 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
       status: "open",
       createdFor: user._id,
       percentageChange: change,
-      date: tradeData.date,
+      date: tradeData.date || currentDate,
     };
 
     const newTrade = await Trade.create(newTradeData);
@@ -215,7 +217,7 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
   </body>
   </html>
   `;
-    const email = "jamfunky3@gmail.com"; //
+    const email = user.email; //
 
     await sendMail(email, subject, message);
     return newTrade;
@@ -226,7 +228,9 @@ tradeSchema.statics.createNewTrade = async function (tradeData) {
 
 tradeSchema.statics.getTrades = async function () {
   try {
-    const trades = await Trade.find();
+    const trades = await Trade.find().sort({
+      createdAt: -1,
+    });
     return trades;
   } catch (error) {
     throw error;
@@ -287,8 +291,6 @@ tradeSchema.statics.editTrade = async function (tradeData) {
       throw new Error("Invalid tradeId");
     }
 
-    console.log("Trade status:", trade.status);
-
     if (trade.status === "closed") {
       throw new Error("Trade already closed!");
     }
@@ -307,7 +309,7 @@ tradeSchema.statics.editTrade = async function (tradeData) {
       // After updating ROI, update percentageChange
       trade.percentageChange = calculatePercentageChange(
         trade.amount,
-        trade.roi
+        trade.roi,
       );
 
       // Save the updated trade
@@ -338,13 +340,8 @@ tradeSchema.statics.closeTrade = async function (tradeData) {
 
     const userWallets = await Wallet.find({ ownerId: user._id });
     const investWallet = userWallets.find(
-      (wallet) => wallet.walletName === "Invest"
+      (wallet) => wallet.walletName === "Invest",
     );
-
-    // Debug logs to check values
-    console.log("Trade amount:", trade.amount);
-    console.log("Trade ROI:", trade.roi);
-    console.log("Current wallet balance:", investWallet.balance);
 
     // Calculate total to return (amount + ROI)
     const total = Number(trade.amount) + Number(trade.roi);

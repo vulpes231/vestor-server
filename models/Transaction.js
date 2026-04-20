@@ -52,12 +52,12 @@ const transactionSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 transactionSchema.statics.createTransaction = async function (
   transactionData,
-  userId
+  userId,
 ) {
   try {
     const user = await User.findOne({ _id: userId });
@@ -70,7 +70,7 @@ transactionSchema.statics.createTransaction = async function (
     }
 
     const depositAccount = userWallets.find(
-      (wallet) => wallet.walletName.toLowerCase() === "deposit"
+      (wallet) => wallet.walletName.toLowerCase() === "deposit",
     );
     if (!depositAccount) {
       throw new Error("User has no deposit wallet");
@@ -78,7 +78,6 @@ transactionSchema.statics.createTransaction = async function (
 
     let paymentInfo;
     if (transactionData.method === "bank") {
-      // Validate bank info exists
       if (
         !user.bankDepositInfo ||
         !user.bankDepositInfo.bankName ||
@@ -88,7 +87,6 @@ transactionSchema.statics.createTransaction = async function (
       }
       paymentInfo = `${user.bankDepositInfo.bankName} (Account: ${user.bankDepositInfo.account})`;
     } else {
-      // Crypto deposit - validate wallet info exists
       if (!user.walletDepositInfo) {
         throw new Error("User wallet deposit information not found");
       }
@@ -120,13 +118,12 @@ transactionSchema.statics.createTransaction = async function (
       coin: transactionData.coin,
       memo: transactionData.memo || "Funds deposit",
       status: "pending",
-      date: transactionData.date || format(new Date(), "EEE d MMM, yyyy"),
+      date: transactionData.date, //|| format(new Date(), "EEE d MMM, yyyy")
       method: transactionData.method,
       paymentInfo: paymentInfo,
     };
 
     await Transaction.create(newTransaction);
-    console.log("Balance after", depositAccount.balance);
 
     return newTransaction;
   } catch (error) {
@@ -136,7 +133,7 @@ transactionSchema.statics.createTransaction = async function (
 
 transactionSchema.statics.depositFund = async function (
   transactionData,
-  userId
+  userId,
 ) {
   try {
     // Validate input
@@ -155,7 +152,7 @@ transactionSchema.statics.depositFund = async function (
     }
 
     const user = await User.findById(userId).select(
-      "+bankDepositInfo +walletDepositInfo"
+      "+bankDepositInfo +walletDepositInfo",
     );
     if (!user) {
       throw new Error("User not found");
@@ -286,7 +283,7 @@ transactionSchema.statics.depositFund = async function (
       coin: transactionData.coin,
       memo: transactionData.memo || "Funds deposit",
       status: "pending",
-      date: format(new Date(), "EEE d MMM, yyyy"),
+      date: transactionData.date || format(new Date(), "EEE d MMM, yyyy"),
       method: transactionData.method,
       paymentInfo: paymentInfo,
     };
@@ -306,8 +303,9 @@ transactionSchema.statics.depositFund = async function (
 
 transactionSchema.statics.withdrawFund = async function (
   transactionData,
-  userId
+  userId,
 ) {
+  // console.log(transactionData.date);
   try {
     const user = await User.findOne({ _id: userId });
     if (!user) {
@@ -325,7 +323,7 @@ transactionSchema.statics.withdrawFund = async function (
     // console.log(userWallets);
 
     const withdrawAccount = userWallets.find(
-      (wallet) => wallet.walletName.toLowerCase() === "deposit"
+      (wallet) => wallet.walletName.toLowerCase() === "deposit",
     );
     if (!withdrawAccount) {
       throw new Error("Invalid withdraw from wallet");
@@ -334,8 +332,6 @@ transactionSchema.statics.withdrawFund = async function (
     if (withdrawAccount.balance < parsedAmt) {
       throw new Error("Insufficient balance!");
     }
-
-    console.log("Balance before", withdrawAccount.balance);
 
     withdrawAccount.balance -= parsedAmt;
     await withdrawAccount.save();
@@ -409,7 +405,7 @@ transactionSchema.statics.withdrawFund = async function (
             <div class="highlight">
                 <p><strong>Cryptocurrency:</strong> ${transactionData.coin}</p>
                 <p><strong>Amount:</strong> ${parseFloat(
-                  transactionData.amount
+                  transactionData.amount,
                 )}</p>
                 <p><strong>Status:</strong> Processing</p>
             </div>
@@ -446,12 +442,11 @@ transactionSchema.statics.withdrawFund = async function (
       // receiver: transactionData.receiver,
       sender: withdrawAccount.walletName.toLowerCase(),
       status: "pending",
-      date: currentDate,
+      date: transactionData.date || currentDate,
       method: transactionData.method,
       paymentInfo: transactionData.paymentInfo || null,
     };
     await Transaction.create(newWithdrawal);
-    console.log("Balance after", withdrawAccount.balance);
 
     return newWithdrawal;
   } catch (error) {
@@ -461,7 +456,7 @@ transactionSchema.statics.withdrawFund = async function (
 
 transactionSchema.statics.transferFund = async function (
   transactionData,
-  userId
+  userId,
 ) {
   try {
     const user = await User.findOne({ _id: userId });
@@ -476,7 +471,7 @@ transactionSchema.statics.transferFund = async function (
     // console.log(userWallets);
 
     const withdrawAccount = userWallets.find(
-      (wallet) => wallet.walletName.toLowerCase() === transactionData.sender
+      (wallet) => wallet.walletName.toLowerCase() === transactionData.sender,
     );
     if (!withdrawAccount) {
       throw new Error("Invalid from wallet");
@@ -486,7 +481,7 @@ transactionSchema.statics.transferFund = async function (
     }
 
     const receiver = userWallets.find(
-      (wallet) => wallet.walletName.toLowerCase() === transactionData.receiver
+      (wallet) => wallet.walletName.toLowerCase() === transactionData.receiver,
     );
     if (!receiver) {
       throw new Error("Invalid to wallet");
@@ -497,6 +492,8 @@ transactionSchema.statics.transferFund = async function (
 
     receiver.balance += parsedAmt;
     await receiver.save();
+
+    const currentDate = format(new Date(), "EEE d MMM, yyyy");
 
     const newTransfer = {
       owner: user._id,
@@ -509,9 +506,9 @@ transactionSchema.statics.transferFund = async function (
       receiver: receiver.walletName.toLowerCase(),
       status: "completed",
       method: "wallet",
+      date: transactionData.date || currentDate,
     };
     await Transaction.create(newTransfer);
-    console.log("Balance after", withdrawAccount.balance);
 
     return newTransfer;
   } catch (error) {
@@ -525,7 +522,9 @@ transactionSchema.statics.getUserHistory = async function (userId) {
     if (!user) {
       throw new Error("User not found!");
     }
-    const userTrnxs = await Transaction.find({ owner: user._id });
+    const userTrnxs = await Transaction.find({ owner: user._id }).sort({
+      createdAt: -1,
+    });
     if (userTrnxs.length < 0) {
       throw new Error("You have no transactions.");
     }
@@ -537,7 +536,9 @@ transactionSchema.statics.getUserHistory = async function (userId) {
 
 transactionSchema.statics.getAllTrnxs = async function () {
   try {
-    const transactions = await Transaction.find();
+    const transactions = await Transaction.find().sort({
+      createdAt: -1,
+    });
     if (transactions.length < 0) {
       throw new Error("You have no transactions.");
     }
@@ -563,7 +564,7 @@ transactionSchema.statics.approve = async function (transactionId) {
       const userWallets = await Wallet.find({ ownerId: transactionInfo.owner });
 
       const depositWallet = userWallets.find(
-        (wallet) => wallet.walletName === "Deposit"
+        (wallet) => wallet.walletName === "Deposit",
       );
 
       depositWallet.balance += transactionInfo.amount;

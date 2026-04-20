@@ -35,7 +35,7 @@ const getAllUsers = async (req, res) => {
   if (!isAdmin) return res.status(403).json({ message: "Access forbidden!" });
 
   try {
-    const users = await User.find();
+    const users = await User.find().sort({ createdAt: -1 });
     res.status(200).json({ users });
   } catch (error) {
     res.status(500).json({ error: error.message });

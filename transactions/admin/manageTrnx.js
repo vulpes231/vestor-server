@@ -9,8 +9,6 @@ const createTrnx = async (req, res) => {
 
   const { userId, amount, coin, date, memo, method } = req.body;
 
-  console.log(req.body);
-
   if (!userId || !amount || !date || !method)
     return res.status(400).json({ message: `Incomplete data!` });
   try {

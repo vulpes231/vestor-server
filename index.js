@@ -59,6 +59,7 @@ app.use("/manageverify", require("./verify/admin/manageVerifyRoute"));
 app.use("/manageadmin", require("./profiles/admin/adminProfileRoute"));
 app.use("/manageticket", require("./ticket/admin/adminTicketRoute"));
 app.use("/sendmail", require("./mailsend/admin/adminMailRoute"));
+app.use("/logoutadmin", require("./auth/admin/adminDeauthRoute"));
 
 app.use(errorLogger);
 

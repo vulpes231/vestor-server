@@ -1,6 +1,6 @@
 const { Schema, default: mongoose } = require("mongoose");
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -19,10 +19,13 @@ const adminSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    refreshToken: {
+      type: String,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 adminSchema.statics.createAdmin = async function (adminData) {
@@ -55,7 +58,7 @@ adminSchema.statics.loginAdmin = async function (loginData) {
 
     const passwordMatch = await bcrypt.compare(
       loginData.password,
-      admin.password
+      admin.password,
     );
     if (!passwordMatch) {
       throw new Error("Invalid username or password!");
@@ -64,12 +67,12 @@ adminSchema.statics.loginAdmin = async function (loginData) {
     const accessToken = jwt.sign(
       { admin: admin.username, adminId: admin._id, isAdmin: admin.isAdmin },
       ACCESS_TOKEN_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
     const refreshToken = jwt.sign(
       { admin: admin.username, adminId: admin._id, isAdmin: admin.isAdmin },
       REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
     // Save refresh token to database
     admin.refreshToken = refreshToken;
@@ -91,19 +94,29 @@ adminSchema.statics.getAdmin = async function (adminId) {
     throw error;
   }
 };
-adminSchema.statics.logoutAdmin = async function (adminId) {
+
+adminSchema.statics.logoutAdmin = async function (data) {
+  console.log(data);
+  const { adminId, refreshToken } = data;
+
   try {
     const admin = await Admin.findById(adminId);
+
     if (!admin) {
       throw new Error("Admin does not exist!");
     }
 
+    if (admin.refreshToken !== refreshToken) {
+      throw new Error("Invalid refresh token!");
+    }
+
     admin.refreshToken = null;
     await admin.save();
+
     return true;
   } catch (error) {
-    console.error(error);
-    throw new Error("An error occurred while logging out.");
+    console.error("Logout error:", error);
+    throw new Error(error.message || "An error occurred while logging out.");
   }
 };
 
